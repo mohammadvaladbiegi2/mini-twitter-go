@@ -1,0 +1,3 @@
+for connct topostgres DB go get github.com/jackc/pgx/v5   
+for load envirment varible  go get github.com/joho/godotenv     
+for migrations go get github.com/golang-migrate/migrate/v4

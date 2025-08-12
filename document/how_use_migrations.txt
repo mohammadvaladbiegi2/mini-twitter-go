@@ -1,0 +1,32 @@
+first create file in migrations folder 
+
+for up migration you shoud create file whit this Structure (name).up.sql and write your sql query like this 👇👇
+
+CREATE TABLE post (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+
+and for down migration use this Structure (name).down.sql then your sql query like this 👇👇
+
+DROP TABLE IF EXISTS post;
+
+
+and for run migrations run this code 👇👇
+
+m, err := migrate.New(
+		"file://./migrations", your migrations folder address
+		"(DBURL)?sslmode=disable", your database URL
+	)
+	if err != nil {
+		log.Fatalf("failed to create migrate instance: %v", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("migration failed: %v", err)
+	}
+
+	log.Println("migration applied successfully")
