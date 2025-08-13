@@ -35,6 +35,8 @@ func NewPoolReqToSQLDB() *pgxpool.Pool {
 		log.Fatalf("❌ error to create Pool: %v", err)
 	}
 
+	fmt.Println("Connect to Data Base Successfully✅✅")
+
 	return pool
 }
 
