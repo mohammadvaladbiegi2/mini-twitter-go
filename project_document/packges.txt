@@ -3,6 +3,7 @@ for load envirment varible  go get github.com/joho/godotenv
 for migrations go get github.com/golang-migrate/migrate/v4
 for web framework go get github.com/labstack/echo/v4
 for use middleware in echo framework go get github.com/labstack/echo/v4/middleware
+for use JWT go get github.com/golang-jwt/jwt/v5
 
 
 

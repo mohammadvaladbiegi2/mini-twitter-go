@@ -9,3 +9,7 @@ type SignUpReq struct {
 type SignUpRes struct {
 	Token string `json:"token"`
 }
+type SignUpResDB struct {
+	ID       int64
+	UserName string
+}

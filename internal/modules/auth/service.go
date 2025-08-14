@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"fmt"
 	"twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
+	"twitter_clone/internal/pkg/jwt"
 	"twitter_clone/internal/pkg/validation"
 
 	"golang.org/x/crypto/bcrypt"
@@ -36,12 +38,19 @@ func (r AuthService) SignUp(userData dtos.SignUpReq) (dtos.SignUpRes, *apperror.
 	userData.Password = string(hashedPassword)
 
 	// create pool request to database
-	message, err := r.repo.SignUp(userData)
+	user, err := r.repo.SignUp(userData)
+	fmt.Println(user)
 	if err != nil {
 		return dtos.SignUpRes{}, err
 	}
 
-	return dtos.SignUpRes{Token: message.Token}, nil
+	// generate token
+	token, Terr := jwt.BuildToken(user.UserName, user.ID)
+	if Terr != nil {
+		return dtos.SignUpRes{}, Terr
+	}
+
+	return dtos.SignUpRes{Token: token}, nil
 }
 
 func (r AuthService) Login(userData dtos.LoginReq) (dtos.LoginRes, *apperror.AppError) {
@@ -59,8 +68,12 @@ func (r AuthService) Login(userData dtos.LoginReq) (dtos.LoginRes, *apperror.App
 		return dtos.LoginRes{}, apperror.UnauthorizedErr("invalid username or password", Cerror)
 	}
 
-	// TODO generate token
+	token, Terr := jwt.BuildToken(user.UserName, user.ID)
+	if Terr != nil {
+		return dtos.LoginRes{}, Terr
+	}
+
 	return dtos.LoginRes{
-		Token: "generate token",
+		Token: token,
 	}, nil
 }

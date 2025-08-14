@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"time"
 	"twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
@@ -13,7 +12,7 @@ import (
 )
 
 type Repository interface {
-	SignUp(userData dtos.SignUpReq) (dtos.SignUpRes, *apperror.AppError)
+	SignUp(userData dtos.SignUpReq) (dtos.SignUpResDB, *apperror.AppError)
 	Login(userData dtos.LoginReq) (dtos.LoginDBRes, *apperror.AppError)
 }
 
@@ -25,30 +24,37 @@ func NewAuthRepository(db *pgxpool.Pool) Repository {
 	return &AuthRepository{db: db}
 }
 
-func (r AuthRepository) SignUp(userData dtos.SignUpReq) (dtos.SignUpRes, *apperror.AppError) {
-
-	// if request tacke more 5 second the request canceled
+func (r AuthRepository) SignUp(userData dtos.SignUpReq) (dtos.SignUpResDB, *apperror.AppError) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// query for postgrest databae
-	query := `
-		INSERT INTO users (username, email, password_hash)
-		VALUES ($1, $2, $3)
-		RETURNING id
+	checkQuery := `
+		SELECT id FROM users 
+		WHERE username = $1 OR email = $2
 	`
-
-	// requst to Data Base
-	var userID int64
-	err := r.db.QueryRow(ctx, query, userData.Username, userData.Email, userData.Password).Scan(&userID)
-	if err != nil {
-		fmt.Println(err)
-		return dtos.SignUpRes{}, apperror.DB("failed to insert user", err)
+	var existingID int64
+	err := r.db.QueryRow(ctx, checkQuery, userData.Username, userData.Email).Scan(&existingID)
+	if err == nil {
+		return dtos.SignUpResDB{}, apperror.Validation("user already exists", nil, nil)
+	} else if err != pgx.ErrNoRows {
+		return dtos.SignUpResDB{}, apperror.DB("failed to check existing user", err)
 	}
 
-	// TODO Generate token
-	return dtos.SignUpRes{
-		Token: "generate token",
+	insertQuery := `
+		INSERT INTO users (username, email, password_hash)
+		VALUES ($1, $2, $3)
+		RETURNING id, username;
+	`
+	var userID int64
+	var username string
+	err = r.db.QueryRow(ctx, insertQuery, userData.Username, userData.Email, userData.Password).Scan(&userID, &username)
+	if err != nil {
+		return dtos.SignUpResDB{}, apperror.DB("failed to insert user", err)
+	}
+
+	return dtos.SignUpResDB{
+		ID:       userID,
+		UserName: username,
 	}, nil
 }
 
@@ -58,15 +64,16 @@ func (r AuthRepository) Login(userData dtos.LoginReq) (dtos.LoginDBRes, *apperro
 
 	var storedHashedPassword string
 	var userName string
+	var userID int64
 
 	query := `
-		SELECT username, password_hash
+		SELECT username, id, password_hash
 		FROM users
 		WHERE username = $1
 		LIMIT 1;
 	`
 
-	err := r.db.QueryRow(ctx, query, userData.UserName).Scan(&userName, &storedHashedPassword)
+	err := r.db.QueryRow(ctx, query, userData.UserName).Scan(&userName, &userID, &storedHashedPassword)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return dtos.LoginDBRes{}, apperror.NotFound("user not found", err)
@@ -75,6 +82,7 @@ func (r AuthRepository) Login(userData dtos.LoginReq) (dtos.LoginDBRes, *apperro
 	}
 
 	return dtos.LoginDBRes{
+		ID:             userID,
 		UserName:       userName,
 		HashedPassword: storedHashedPassword,
 	}, nil

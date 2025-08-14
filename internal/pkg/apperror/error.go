@@ -54,6 +54,10 @@ func UnauthorizedErr(msg string, err error) *AppError {
 	return New("UNAUTHORIZED", msg, nil, http.StatusUnauthorized, err)
 }
 
+func Forbidden(msg string, err error) *AppError {
+	return New("FORBIDDEN", msg, nil, http.StatusForbidden, err)
+}
+
 func IsAppError(err error) bool {
 	var appErr *AppError
 	return errors.As(err, &appErr)

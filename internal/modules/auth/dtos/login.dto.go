@@ -10,6 +10,7 @@ type LoginRes struct {
 }
 
 type LoginDBRes struct {
+	ID             int64
 	UserName       string
 	HashedPassword string
 }
