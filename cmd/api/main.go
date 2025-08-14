@@ -1,35 +1,27 @@
 package main
 
 import (
-	"errors"
-	"log/slog"
-	"net/http"
-	"twitter_clone/internal/modules/user"
+	"fmt"
+	"log"
+	"os"
+	"twitter_clone/internal/app"
 	"twitter_clone/internal/repository"
-
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
-	// Echo instance
-	e := echo.New()
+	// connect to database
+	db := repository.NewPoolReqToSQLDB()
 
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	// create echo Servers
+	e := app.NewServer()
 
-	pool := repository.NewPoolReqToSQLDB()
-	Userrepo := user.NewUserRepository(pool)
-	Userservice := user.NewUserService(Userrepo)
-	UserHandler := user.NewUserHandler(Userservice)
+	// add routes
+	app.RegisterRoutes(e, db)
 
-	// Routes
+	serverPort := os.Getenv("SERVER_PORT")
 
-	e.POST("/signup", UserHandler.SignUp)
-
-	// Start server
-	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("failed to start server", "error", err)
+	// start server
+	if err := e.Start(fmt.Sprintf(":%s", serverPort)); err != nil {
+		log.Fatal(err)
 	}
 }

@@ -25,10 +25,22 @@ func (h *UserHandler) SignUp(c echo.Context) error {
 	}
 
 	// Call service layer
-	message, appErr := h.service.SignUp(req)
+	token, appErr := h.service.SignUp(req)
 	if appErr != nil {
 		return c.JSON(appErr.StatusCode, appErr)
 	}
 
-	return c.JSON(http.StatusOK, message)
+	return c.JSON(http.StatusOK, token)
+}
+
+func (h *UserHandler) Login(c echo.Context) error {
+	var req dtos.LoginReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, apperror.Validation("Invalid request body", nil, err))
+	}
+	token, appErr := h.service.Login(req)
+	if appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+	return c.JSON(http.StatusOK, token)
 }

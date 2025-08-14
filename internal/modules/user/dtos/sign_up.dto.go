@@ -7,5 +7,5 @@ type UserSignUpReq struct {
 }
 
 type UserSignUpRes struct {
-	Message string `json:"message"`
+	Token string `json:"token"`
 }
