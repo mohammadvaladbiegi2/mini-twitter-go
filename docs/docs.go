@@ -81,7 +81,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.UserSignUpReq"
+                            "$ref": "#/definitions/dtos.SignUpReq"
                         }
                     }
                 ],
@@ -89,7 +89,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dtos.UserSignUpRes"
+                            "$ref": "#/definitions/dtos.SignUpRes"
                         }
                     },
                     "400": {
@@ -151,7 +151,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.UserSignUpReq": {
+        "dtos.SignUpReq": {
             "type": "object",
             "properties": {
                 "email": {
@@ -165,7 +165,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.UserSignUpRes": {
+        "dtos.SignUpRes": {
             "type": "object",
             "properties": {
                 "token": {

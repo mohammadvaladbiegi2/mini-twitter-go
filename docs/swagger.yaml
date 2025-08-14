@@ -26,7 +26,7 @@ definitions:
       token:
         type: string
     type: object
-  dtos.UserSignUpReq:
+  dtos.SignUpReq:
     properties:
       email:
         type: string
@@ -35,7 +35,7 @@ definitions:
       username:
         type: string
     type: object
-  dtos.UserSignUpRes:
+  dtos.SignUpRes:
     properties:
       token:
         type: string
@@ -84,14 +84,14 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dtos.UserSignUpReq'
+          $ref: '#/definitions/dtos.SignUpReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dtos.UserSignUpRes'
+            $ref: '#/definitions/dtos.SignUpRes'
         "400":
           description: Bad Request
           schema:

@@ -1,11 +1,11 @@
 package dtos
 
-type UserSignUpReq struct {
+type SignUpReq struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type UserSignUpRes struct {
+type SignUpRes struct {
 	Token string `json:"token"`
 }

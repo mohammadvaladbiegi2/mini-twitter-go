@@ -1,7 +1,7 @@
 package app
 
 import (
-	"twitter_clone/internal/modules/user"
+	"twitter_clone/internal/modules/auth"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -10,13 +10,13 @@ import (
 
 func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	// Create Dependency
-	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo)
-	userHandler := user.NewUserHandler(userService)
+	authRepo := auth.NewAuthRepository(db)
+	authService := auth.NewAuthService(authRepo)
+	authHandler := auth.NewAuthHandler(authService)
 
 	// Routs
-	e.POST("/signup", userHandler.SignUp)
-	e.POST("/login", userHandler.Login)
+	e.POST("/signup", authHandler.SignUp)
+	e.POST("/login", authHandler.Login)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

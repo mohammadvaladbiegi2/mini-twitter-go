@@ -1,7 +1,7 @@
 package validation
 
 import (
-	"twitter_clone/internal/modules/user/dtos"
+	"twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
 )
 
