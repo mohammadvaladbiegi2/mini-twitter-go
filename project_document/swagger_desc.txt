@@ -1,0 +1,42 @@
+LINK ===> http://localhost:8080/swagger/index.html
+
+how setup
+
+1__if you dont install swag in your system 
+in windows do this step by step 
+
+1_for install cmd swagger in your system go install github.com/swaggo/swag/cmd/swag@latest
+
+2_open CMD in your system then add this path setx PATH "$env:PATH;C:\Users\<YourUser>\go\bin"
+
+3_ test the installition => swag --version
+
+
+2__add this packages
+
+for swagger in echo framwork go get github.com/swaggo/echo-swagger
+for cmd swagger in echo framwork go get github.com/swaggo/swag/cmd/swag
+
+3__wher you New a echo server and decler your routs add this
+e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+
+4__ the add your comment on top up your handler for example
+
+// SignUp godoc
+// @Summary User signup
+// @Description Register a new user account
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dtos.UserSignUpReq true "Signup request"
+// @Success 200 {object} dtos.UserSignUpRes
+// @Failure 400 {object} map[string]string
+// @Router /signup [post]
+func (h *UserHandler) SignUp(c echo.Context) error 
+
+
+5__ then run  this command in your project root
+swag init -g cmd/api/main.go
+
+DONE you can see the swagger in that link in first line

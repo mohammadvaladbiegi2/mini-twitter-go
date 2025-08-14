@@ -1,0 +1,106 @@
+definitions:
+  apperror.AppError:
+    properties:
+      errors:
+        items:
+          additionalProperties:
+            type: string
+          type: object
+        type: array
+      message:
+        type: string
+      status_code:
+        type: integer
+      type:
+        type: string
+    type: object
+  dtos.LoginReq:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.LoginRes:
+    properties:
+      token:
+        type: string
+    type: object
+  dtos.UserSignUpReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.UserSignUpRes:
+    properties:
+      token:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.LoginRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Login user
+      tags:
+      - Auth
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User signup data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserSignUpReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.UserSignUpRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Sign up a new user
+      tags:
+      - Auth
+swagger: "2.0"

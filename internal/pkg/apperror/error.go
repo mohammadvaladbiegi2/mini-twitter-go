@@ -6,16 +6,14 @@ import (
 	"net/http"
 )
 
-// ErrorType فقط یک رشته است، محدود نیست
 type ErrorType string
 
-// AppError ساختار اصلی خطا
 type AppError struct {
-	Type       ErrorType           `json:"type"`             // نوع خطا (قابل سفارشی‌سازی)
-	Message    string              `json:"message"`          // پیام کلی
-	Errors     []map[string]string `json:"errors,omitempty"` // می‌تونه slice یا map از خطاهای جزئی باشه
-	StatusCode int                 `json:"status_code"`      // کد HTTP
-	Err        error               `json:"-"`                // خطای اصلی (برای لاگ داخلی)
+	Type       ErrorType           `json:"type"`
+	Message    string              `json:"message"`
+	Errors     []map[string]string `json:"errors,omitempty"`
+	StatusCode int                 `json:"status_code"`
+	Err        error               `json:"-"`
 }
 
 func (e *AppError) Error() string {
@@ -30,7 +28,7 @@ func New(errType ErrorType, msg string, details []map[string]string, status int,
 	return &AppError{
 		Type:       errType,
 		Message:    msg,
-		Errors:     details, // می‌تونه nil باشه
+		Errors:     details,
 		StatusCode: status,
 		Err:        err,
 	}

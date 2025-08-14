@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
@@ -16,4 +17,7 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	// Routs
 	e.POST("/signup", userHandler.SignUp)
 	e.POST("/login", userHandler.Login)
+
+	// Swagger endpoint
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 }
