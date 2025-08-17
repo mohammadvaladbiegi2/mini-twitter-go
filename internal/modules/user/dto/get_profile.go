@@ -1,3 +1,10 @@
 package userdtos
 
-type UserGetProfileRes struct{}
+type UserGetProfileRes struct {
+	Username       string  `json:"username"`
+	Email          string  `json:"email"`
+	Bio            *string `json:"bio,omitempty"`
+	AvatarURL      *string `json:"avatar_url,omitempty"`
+	FollowerCount  int64   `json:"follower_count"`
+	FollowingCount int64   `json:"following_count"`
+}

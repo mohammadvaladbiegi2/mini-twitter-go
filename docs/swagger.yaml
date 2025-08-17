@@ -54,6 +54,21 @@ definitions:
       username:
         type: string
     type: object
+  userdtos.UserGetProfileRes:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      email:
+        type: string
+      follower_count:
+        type: integer
+      following_count:
+        type: integer
+      username:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -117,6 +132,23 @@ paths:
       summary: Sign up a new user
       tags:
       - Auth
+  /users/get-profile:
+    get:
+      description: get  user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userdtos.UserGetProfileRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: user profile
+      tags:
+      - User
   /users/update-profile:
     put:
       consumes:

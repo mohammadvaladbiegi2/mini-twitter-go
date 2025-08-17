@@ -34,10 +34,29 @@ func (h *Handler) UpdateProfile(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, apperror.Validation("Invalid request body", nil, err))
 	}
 
-	userupdated, appErr := h.service.UpdateProfile(userID, req)
+	userUpdated, appErr := h.service.UpdateProfile(userID, req)
 	if appErr != nil {
 		return c.JSON(appErr.StatusCode, appErr)
 	}
 
-	return c.JSON(http.StatusCreated, userupdated)
+	return c.JSON(http.StatusCreated, userUpdated)
+}
+
+// User godoc
+// @Summary      user profile
+// @Description  get  user profile
+// @Tags         User
+// @Produce      json
+// @Success      200 {object} userdtos.UserGetProfileRes
+// @Failure      400 {object} apperror.AppError
+// @Router       /users/get-profile [get]
+func (h *Handler) GetProfile(c echo.Context) error {
+	userID := c.Get("userID").(int64)
+
+	userProfile, appErr := h.service.GetProfile(userID)
+	if appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+
+	return c.JSON(http.StatusCreated, userProfile)
 }

@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	UpdateProfile(userID int64, updateProfileReq userdtos.UpdateProfileReq) (userdtos.UpdateProfileRes, *apperror.AppError)
+	GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError)
 }
 
 type UserService struct {
@@ -30,4 +31,13 @@ func (u UserService) UpdateProfile(userID int64, updateProfileReq userdtos.Updat
 	}
 
 	return userupdate, nil
+}
+func (u UserService) GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError) {
+
+	userProfile, err := u.Repo.GetProfile(userID)
+	if err != nil {
+		return userdtos.UserGetProfileRes{}, err
+	}
+
+	return userProfile, nil
 }

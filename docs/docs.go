@@ -107,6 +107,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/get-profile": {
+            "get": {
+                "description": "get  user profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "user profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userdtos.UserGetProfileRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/update-profile": {
             "put": {
                 "description": "update user name and bio user",
@@ -229,6 +255,29 @@ const docTemplate = `{
             "properties": {
                 "bio": {
                     "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "userdtos.UserGetProfileRes": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "follower_count": {
+                    "type": "integer"
+                },
+                "following_count": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"

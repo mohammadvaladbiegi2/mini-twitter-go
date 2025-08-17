@@ -35,6 +35,7 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup := e.Group("")
 	authGroup.Use(internalMiddleware.JWTauthentication)
 	authGroup.PUT("users/update-profile", userHandler.UpdateProfile)
+	authGroup.GET("users/get-profile", userHandler.GetProfile)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

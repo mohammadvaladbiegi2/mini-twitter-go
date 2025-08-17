@@ -2,15 +2,18 @@ package user
 
 import (
 	"context"
+	"errors"
 	"time"
 	userdtos "twitter_clone/internal/modules/user/dto"
 	"twitter_clone/internal/pkg/apperror"
 
+	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository interface {
 	UpdateProfile(userID int64, updateProfileReq userdtos.UpdateProfileReq) (userdtos.UpdateProfileRes, *apperror.AppError)
+	GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError)
 }
 
 type UserRepository struct {
@@ -40,6 +43,35 @@ func (r UserRepository) UpdateProfile(userID int64, updateProfileReq userdtos.Up
 
 	if err != nil {
 		return userdtos.UpdateProfileRes{}, apperror.DB("failed to update profile", err)
+	}
+
+	return res, nil
+}
+
+func (r UserRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT username, email, bio, avatar_url, follower_count, following_count
+		FROM users
+		WHERE id = $1
+	`
+
+	var res userdtos.UserGetProfileRes
+	err := r.db.QueryRow(ctx, query, userID).Scan(
+		&res.Username,
+		&res.Email,
+		&res.Bio,
+		&res.AvatarURL,
+		&res.FollowerCount,
+		&res.FollowingCount,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return userdtos.UserGetProfileRes{}, apperror.NotFound("user not found", err)
+		}
+		return userdtos.UserGetProfileRes{}, apperror.DB("failed to get user profile", err)
 	}
 
 	return res, nil
