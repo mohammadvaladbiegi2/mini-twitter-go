@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"twitter_clone/internal/modules/auth/dtos"
+	authdtos "twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
 
 	"github.com/labstack/echo/v4"
@@ -22,13 +22,13 @@ func NewAuthHandler(service Service) *Handler {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        data body dtos.SignUpReq true "User signup data"
-// @Success      200 {object} dtos.SignUpRes
+// @Param        data body authdtos.SignUpReq true "User signup data"
+// @Success      200 {object} authdtos.SignUpRes
 // @Failure      400 {object} apperror.AppError
 // @Failure      500 {object} apperror.AppError
 // @Router       /signup [post]
 func (h *Handler) SignUp(c echo.Context) error {
-	var req dtos.SignUpReq
+	var req authdtos.SignUpReq
 
 	// Parse JSON request body
 	if err := c.Bind(&req); err != nil {
@@ -50,13 +50,13 @@ func (h *Handler) SignUp(c echo.Context) error {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        data body dtos.LoginReq true "Login credentials"
-// @Success      200 {object} dtos.LoginRes
+// @Param        data body authdtos.LoginReq true "Login credentials"
+// @Success      200 {object} authdtos.LoginRes
 // @Failure      400 {object} apperror.AppError
 // @Failure      401 {object} apperror.AppError
 // @Router       /login [post]
 func (h *Handler) Login(c echo.Context) error {
-	var req dtos.LoginReq
+	var req authdtos.LoginReq
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.Validation("Invalid request body", nil, err))
 	}

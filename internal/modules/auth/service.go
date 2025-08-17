@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"twitter_clone/internal/modules/auth/dtos"
+	authdtos "twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
 	"twitter_clone/internal/pkg/jwt"
 	"twitter_clone/internal/pkg/validation"
@@ -11,8 +11,8 @@ import (
 )
 
 type Service interface {
-	SignUp(userData dtos.SignUpReq) (dtos.SignUpRes, *apperror.AppError)
-	Login(userData dtos.LoginReq) (dtos.LoginRes, *apperror.AppError)
+	SignUp(userData authdtos.SignUpReq) (authdtos.SignUpRes, *apperror.AppError)
+	Login(userData authdtos.LoginReq) (authdtos.LoginRes, *apperror.AppError)
 }
 
 type AuthService struct {
@@ -23,17 +23,17 @@ func NewAuthService(repo Repository) Service {
 	return &AuthService{repo: repo}
 }
 
-func (r AuthService) SignUp(userData dtos.SignUpReq) (dtos.SignUpRes, *apperror.AppError) {
+func (r AuthService) SignUp(userData authdtos.SignUpReq) (authdtos.SignUpRes, *apperror.AppError) {
 
 	//  validation user Request
 	if validErrors := validation.ValidateSignUpReq(userData); validErrors != nil {
-		return dtos.SignUpRes{}, validErrors
+		return authdtos.SignUpRes{}, validErrors
 	}
 
 	// hash password by bcrypt package
 	hashedPassword, Herr := bcrypt.GenerateFromPassword([]byte(userData.Password), bcrypt.DefaultCost)
 	if Herr != nil {
-		return dtos.SignUpRes{}, apperror.Server("failed to hash password", Herr)
+		return authdtos.SignUpRes{}, apperror.Server("failed to hash password", Herr)
 	}
 	userData.Password = string(hashedPassword)
 
@@ -41,39 +41,39 @@ func (r AuthService) SignUp(userData dtos.SignUpReq) (dtos.SignUpRes, *apperror.
 	user, err := r.repo.SignUp(userData)
 	fmt.Println(user)
 	if err != nil {
-		return dtos.SignUpRes{}, err
+		return authdtos.SignUpRes{}, err
 	}
 
 	// generate token
 	token, Terr := jwt.BuildToken(user.UserName, user.ID)
 	if Terr != nil {
-		return dtos.SignUpRes{}, Terr
+		return authdtos.SignUpRes{}, Terr
 	}
 
-	return dtos.SignUpRes{Token: token}, nil
+	return authdtos.SignUpRes{Token: token}, nil
 }
 
-func (r AuthService) Login(userData dtos.LoginReq) (dtos.LoginRes, *apperror.AppError) {
+func (r AuthService) Login(userData authdtos.LoginReq) (authdtos.LoginRes, *apperror.AppError) {
 	if validErrors := validation.ValidateLoginReq(userData); validErrors != nil {
-		return dtos.LoginRes{}, validErrors
+		return authdtos.LoginRes{}, validErrors
 	}
 
 	user, err := r.repo.Login(userData)
 	if err != nil {
-		return dtos.LoginRes{}, err
+		return authdtos.LoginRes{}, err
 	}
 
 	Cerror := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(userData.Password))
 	if Cerror != nil {
-		return dtos.LoginRes{}, apperror.UnauthorizedErr("invalid username or password", Cerror)
+		return authdtos.LoginRes{}, apperror.UnauthorizedErr("invalid username or password", Cerror)
 	}
 
 	token, Terr := jwt.BuildToken(user.UserName, user.ID)
 	if Terr != nil {
-		return dtos.LoginRes{}, Terr
+		return authdtos.LoginRes{}, Terr
 	}
 
-	return dtos.LoginRes{
+	return authdtos.LoginRes{
 		Token: token,
 	}, nil
 }

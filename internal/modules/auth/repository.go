@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"time"
-	"twitter_clone/internal/modules/auth/dtos"
+	authdtos "twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
 
 	"github.com/jackc/pgx/v5"
@@ -12,8 +12,8 @@ import (
 )
 
 type Repository interface {
-	SignUp(userData dtos.SignUpReq) (dtos.SignUpResDB, *apperror.AppError)
-	Login(userData dtos.LoginReq) (dtos.LoginDBRes, *apperror.AppError)
+	SignUp(userData authdtos.SignUpReq) (authdtos.SignUpResDB, *apperror.AppError)
+	Login(userData authdtos.LoginReq) (authdtos.LoginDBRes, *apperror.AppError)
 }
 
 type AuthRepository struct {
@@ -24,7 +24,7 @@ func NewAuthRepository(db *pgxpool.Pool) Repository {
 	return &AuthRepository{db: db}
 }
 
-func (r AuthRepository) SignUp(userData dtos.SignUpReq) (dtos.SignUpResDB, *apperror.AppError) {
+func (r AuthRepository) SignUp(userData authdtos.SignUpReq) (authdtos.SignUpResDB, *apperror.AppError) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -35,9 +35,9 @@ func (r AuthRepository) SignUp(userData dtos.SignUpReq) (dtos.SignUpResDB, *appe
 	var existingID int64
 	err := r.db.QueryRow(ctx, checkQuery, userData.Username, userData.Email).Scan(&existingID)
 	if err == nil {
-		return dtos.SignUpResDB{}, apperror.Validation("user already exists", nil, nil)
+		return authdtos.SignUpResDB{}, apperror.Validation("user already exists", nil, nil)
 	} else if err != pgx.ErrNoRows {
-		return dtos.SignUpResDB{}, apperror.DB("failed to check existing user", err)
+		return authdtos.SignUpResDB{}, apperror.DB("failed to check existing user", err)
 	}
 
 	insertQuery := `
@@ -49,16 +49,16 @@ func (r AuthRepository) SignUp(userData dtos.SignUpReq) (dtos.SignUpResDB, *appe
 	var username string
 	err = r.db.QueryRow(ctx, insertQuery, userData.Username, userData.Email, userData.Password).Scan(&userID, &username)
 	if err != nil {
-		return dtos.SignUpResDB{}, apperror.DB("failed to insert user", err)
+		return authdtos.SignUpResDB{}, apperror.DB("failed to insert user", err)
 	}
 
-	return dtos.SignUpResDB{
+	return authdtos.SignUpResDB{
 		ID:       userID,
 		UserName: username,
 	}, nil
 }
 
-func (r AuthRepository) Login(userData dtos.LoginReq) (dtos.LoginDBRes, *apperror.AppError) {
+func (r AuthRepository) Login(userData authdtos.LoginReq) (authdtos.LoginDBRes, *apperror.AppError) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -76,12 +76,12 @@ func (r AuthRepository) Login(userData dtos.LoginReq) (dtos.LoginDBRes, *apperro
 	err := r.db.QueryRow(ctx, query, userData.UserName).Scan(&userName, &userID, &storedHashedPassword)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return dtos.LoginDBRes{}, apperror.NotFound("user not found", err)
+			return authdtos.LoginDBRes{}, apperror.NotFound("user not found", err)
 		}
-		return dtos.LoginDBRes{}, apperror.DB("failed to fetch user", err)
+		return authdtos.LoginDBRes{}, apperror.DB("failed to fetch user", err)
 	}
 
-	return dtos.LoginDBRes{
+	return authdtos.LoginDBRes{
 		ID:             userID,
 		UserName:       userName,
 		HashedPassword: storedHashedPassword,

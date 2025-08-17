@@ -1,4 +1,4 @@
-package dtos
+package authdtos
 
 type SignUpReq struct {
 	Username string `json:"username"`

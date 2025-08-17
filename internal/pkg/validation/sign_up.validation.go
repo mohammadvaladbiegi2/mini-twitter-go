@@ -2,11 +2,11 @@ package validation
 
 import (
 	"regexp"
-	"twitter_clone/internal/modules/auth/dtos"
+	authdtos "twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
 )
 
-func ValidateSignUpReq(req dtos.SignUpReq) *apperror.AppError {
+func ValidateSignUpReq(req authdtos.SignUpReq) *apperror.AppError {
 	var validationErrors []map[string]string
 
 	if req.Username == "" {

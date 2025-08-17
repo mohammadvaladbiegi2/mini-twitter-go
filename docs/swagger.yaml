@@ -14,19 +14,19 @@ definitions:
       type:
         type: string
     type: object
-  dtos.LoginReq:
+  authdtos.LoginReq:
     properties:
       password:
         type: string
       username:
         type: string
     type: object
-  dtos.LoginRes:
+  authdtos.LoginRes:
     properties:
       token:
         type: string
     type: object
-  dtos.SignUpReq:
+  authdtos.SignUpReq:
     properties:
       email:
         type: string
@@ -35,9 +35,23 @@ definitions:
       username:
         type: string
     type: object
-  dtos.SignUpRes:
+  authdtos.SignUpRes:
     properties:
       token:
+        type: string
+    type: object
+  userdtos.UpdateProfileReq:
+    properties:
+      bio:
+        type: string
+      username:
+        type: string
+    type: object
+  userdtos.UpdateProfileRes:
+    properties:
+      bio:
+        type: string
+      username:
         type: string
     type: object
 info:
@@ -54,14 +68,14 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dtos.LoginReq'
+          $ref: '#/definitions/authdtos.LoginReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dtos.LoginRes'
+            $ref: '#/definitions/authdtos.LoginRes'
         "400":
           description: Bad Request
           schema:
@@ -84,14 +98,14 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dtos.SignUpReq'
+          $ref: '#/definitions/authdtos.SignUpReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dtos.SignUpRes'
+            $ref: '#/definitions/authdtos.SignUpRes'
         "400":
           description: Bad Request
           schema:
@@ -103,4 +117,30 @@ paths:
       summary: Sign up a new user
       tags:
       - Auth
+  /users/update-profile:
+    put:
+      consumes:
+      - application/json
+      description: update user name and bio user
+      parameters:
+      - description: Update profile credentials (bio is optional)
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/userdtos.UpdateProfileReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userdtos.UpdateProfileRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: update user profile
+      tags:
+      - User
 swagger: "2.0"

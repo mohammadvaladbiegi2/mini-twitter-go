@@ -1,11 +1,11 @@
 package validation
 
 import (
-	"twitter_clone/internal/modules/auth/dtos"
+	authdtos "twitter_clone/internal/modules/auth/dtos"
 	"twitter_clone/internal/pkg/apperror"
 )
 
-func ValidateLoginReq(req dtos.LoginReq) *apperror.AppError {
+func ValidateLoginReq(req authdtos.LoginReq) *apperror.AppError {
 	var validationErrors []map[string]string
 
 	if req.UserName == "" {

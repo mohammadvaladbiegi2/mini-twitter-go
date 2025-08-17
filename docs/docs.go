@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.LoginReq"
+                            "$ref": "#/definitions/authdtos.LoginReq"
                         }
                     }
                 ],
@@ -43,7 +43,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dtos.LoginRes"
+                            "$ref": "#/definitions/authdtos.LoginRes"
                         }
                     },
                     "400": {
@@ -81,7 +81,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.SignUpReq"
+                            "$ref": "#/definitions/authdtos.SignUpReq"
                         }
                     }
                 ],
@@ -89,7 +89,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dtos.SignUpRes"
+                            "$ref": "#/definitions/authdtos.SignUpRes"
                         }
                     },
                     "400": {
@@ -100,6 +100,46 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/update-profile": {
+            "put": {
+                "description": "update user name and bio user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "update user profile",
+                "parameters": [
+                    {
+                        "description": "Update profile credentials (bio is optional)",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userdtos.UpdateProfileReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userdtos.UpdateProfileRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/apperror.AppError"
                         }
@@ -132,7 +172,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.LoginReq": {
+        "authdtos.LoginReq": {
             "type": "object",
             "properties": {
                 "password": {
@@ -143,7 +183,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.LoginRes": {
+        "authdtos.LoginRes": {
             "type": "object",
             "properties": {
                 "token": {
@@ -151,7 +191,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.SignUpReq": {
+        "authdtos.SignUpReq": {
             "type": "object",
             "properties": {
                 "email": {
@@ -165,10 +205,32 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.SignUpRes": {
+        "authdtos.SignUpRes": {
             "type": "object",
             "properties": {
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "userdtos.UpdateProfileReq": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "userdtos.UpdateProfileRes": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

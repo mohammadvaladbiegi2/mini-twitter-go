@@ -43,7 +43,7 @@ func VerifyToken(tokenString string) (*CustomClaims, *apperror.AppError) {
 	})
 
 	if err != nil {
-		return nil, apperror.UnauthorizedErr("failed to parse token", err)
+		return nil, apperror.UnauthorizedErr("token signature is invalid", err)
 	}
 
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {

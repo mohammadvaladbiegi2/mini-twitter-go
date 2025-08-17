@@ -1,4 +1,4 @@
-package dtos
+package authdtos
 
 type LoginReq struct {
 	UserName string `json:"username"`
