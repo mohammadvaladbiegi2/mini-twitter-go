@@ -8,8 +8,8 @@ type Tweet struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	Tags      []Tag     `json:"tags,omitempty"`
-	Likes     []Like    `json:"likes,omitempty"`
+	Tags      []Tag     `json:"tags"`
+	Likes     []Like    `json:"likes"`
 }
 
 type Tag struct {

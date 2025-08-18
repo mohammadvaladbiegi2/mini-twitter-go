@@ -3,6 +3,7 @@ package app
 import (
 	internalMiddleware "twitter_clone/internal/middleware"
 	"twitter_clone/internal/modules/auth"
+	"twitter_clone/internal/modules/tweet"
 	"twitter_clone/internal/modules/user"
 
 	"github.com/labstack/echo/v4/middleware"
@@ -28,6 +29,11 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	userService := user.NewUserService(userRepo)
 	userHandler := user.NewUserHandler(userService)
 
+	// Create tweet Dependency
+	tweetRepo := tweet.NewRepository(db)
+	tweetService := tweet.NewTweetService(tweetRepo)
+	tweetHandler := tweet.NewTweetHandler(tweetService)
+
 	// Routs
 	e.POST("/signup", authHandler.SignUp)
 	e.POST("/login", authHandler.Login)
@@ -35,9 +41,14 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	// route need protection and token
 	authGroup := e.Group("")
 	authGroup.Use(internalMiddleware.JWTauthentication)
+
+	// user
 	authGroup.PUT("users/update-profile", userHandler.UpdateProfile)
 	authGroup.GET("users/get-profile", userHandler.GetProfile)
 	authGroup.GET("users/search-by-user-name", userHandler.SearchUsersByUserName)
+
+	// tweet
+	authGroup.POST("tweets/create-new-tweet", tweetHandler.CreateNewTweet)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

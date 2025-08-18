@@ -108,5 +108,5 @@ func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 		return c.JSON(Serror.StatusCode, Serror)
 	}
 
-	return c.JSON(200, users)
+	return c.JSON(http.StatusOK, users)
 }
