@@ -85,6 +85,7 @@ func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
 	}
 
+	maxLimit := 50
 	limit := 10
 	if param := c.QueryParam("limit"); param != "" {
 		if num, err := strconv.Atoi(param); err != nil || num <= 0 {
@@ -94,7 +95,11 @@ func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 
 			return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
 		} else {
-			limit = num
+			if num > maxLimit {
+				limit = maxLimit
+			} else {
+				limit = num
+			}
 		}
 	}
 
