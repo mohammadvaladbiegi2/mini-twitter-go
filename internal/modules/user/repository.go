@@ -81,14 +81,15 @@ func (r UserRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *a
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := `
+	// first get user data
+	queryUser := `
 		SELECT username, email, bio, avatar_url, follower_count, following_count
 		FROM users
 		WHERE id = $1
 	`
 
 	var res userdtos.UserGetProfileRes
-	err := r.db.QueryRow(ctx, query, userID).Scan(
+	err := r.db.QueryRow(ctx, queryUser, userID).Scan(
 		&res.Username,
 		&res.Email,
 		&res.Bio,
@@ -101,6 +102,44 @@ func (r UserRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *a
 			return userdtos.UserGetProfileRes{}, apperror.NotFound("user not found", err)
 		}
 		return userdtos.UserGetProfileRes{}, apperror.DB("failed to get user profile", err)
+	}
+
+	// get user tweets
+	queryTweets := `
+    SELECT
+        t.id,
+        t.content,
+        t.like_count,
+        t.dislike_count,
+        t.created_at,
+        COALESCE(ARRAY_AGG(DISTINCT tg.name) FILTER (WHERE tg.name IS NOT NULL), '{}') AS tags
+    FROM tweets t
+    LEFT JOIN tweet_tags tt ON tt.tweet_id = t.id
+    LEFT JOIN tags tg       ON tg.id = tt.tag_id
+    WHERE t.user_id = $1
+    GROUP BY t.id
+    ORDER BY t.created_at DESC;
+`
+
+	rows, err := r.db.Query(ctx, queryTweets, userID)
+	if err != nil {
+		return res, apperror.DB("failed to get user tweets", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tw userdtos.TweetForProfile
+		var createdAt time.Time
+		var tags []string
+
+		if err := rows.Scan(&tw.ID, &tw.Content, &tw.LikeCount, &tw.DislikeCount, &createdAt, &tags); err != nil {
+			return res, apperror.DB("failed to scan tweet", err)
+		}
+
+		tw.CreatedAt = createdAt.Format(time.RFC3339)
+		tw.Tags = tags
+
+		res.Tweets = append(res.Tweets, tw)
 	}
 
 	return res, nil

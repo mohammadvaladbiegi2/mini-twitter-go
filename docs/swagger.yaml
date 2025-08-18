@@ -40,6 +40,19 @@ definitions:
       token:
         type: string
     type: object
+  tweetdtos.CreateTweetRes:
+    properties:
+      content:
+        type: string
+      id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      user_id:
+        type: integer
+    type: object
   userdtos.SearchUsersByUsernameRes:
     properties:
       avatar_url:
@@ -48,6 +61,23 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  userdtos.TweetForProfile:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      dislike_count:
+        type: integer
+      id:
+        type: integer
+      like_count:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
     type: object
   userdtos.UpdateProfileReq:
     properties:
@@ -75,6 +105,10 @@ definitions:
         type: integer
       following_count:
         type: integer
+      tweets:
+        items:
+          $ref: '#/definitions/userdtos.TweetForProfile'
+        type: array
       username:
         type: string
     type: object
@@ -141,6 +175,23 @@ paths:
       summary: Sign up a new user
       tags:
       - Auth
+  /tweets/create-new-tweet:
+    post:
+      description: Create new tweet, The `tags` field is optional
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tweetdtos.CreateTweetRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: new Tweet
+      tags:
+      - Tweet
   /users/get-profile:
     get:
       description: get  user profile

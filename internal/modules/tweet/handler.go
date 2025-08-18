@@ -16,6 +16,14 @@ func NewTweetHandler(service Service) *Handler {
 	return &Handler{Service: service}
 }
 
+// Tweet godoc
+// @Summary      new Tweet
+// @Description  Create new tweet, The `tags` field is optional
+// @Tags         Tweet
+// @Produce      json
+// @Success      200 {object} tweetdtos.CreateTweetRes
+// @Failure      400 {object} apperror.AppError
+// @Router       /tweets/create-new-tweet [post]
 func (h Handler) CreateNewTweet(c echo.Context) error {
 	userID := c.Get("userID").(int64)
 

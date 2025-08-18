@@ -60,7 +60,7 @@ func (h *Handler) GetProfile(c echo.Context) error {
 		return c.JSON(appErr.StatusCode, appErr)
 	}
 
-	return c.JSON(http.StatusCreated, userProfile)
+	return c.JSON(http.StatusOK, userProfile)
 }
 
 // User godoc

@@ -96,6 +96,32 @@
                 }
             }
         },
+        "/tweets/create-new-tweet": {
+            "post": {
+                "description": "Create new tweet, The `tags` field is optional",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tweet"
+                ],
+                "summary": "new Tweet",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tweetdtos.CreateTweetRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/get-profile": {
             "get": {
                 "description": "get  user profile",
@@ -284,6 +310,26 @@
                 }
             }
         },
+        "tweetdtos.CreateTweetRes": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "userdtos.SearchUsersByUsernameRes": {
             "type": "object",
             "properties": {
@@ -295,6 +341,32 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "userdtos.TweetForProfile": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dislike_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "like_count": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -337,6 +409,12 @@
                 },
                 "following_count": {
                     "type": "integer"
+                },
+                "tweets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/userdtos.TweetForProfile"
+                    }
                 },
                 "username": {
                     "type": "string"
