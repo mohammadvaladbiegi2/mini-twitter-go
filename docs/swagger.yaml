@@ -40,6 +40,15 @@ definitions:
       token:
         type: string
     type: object
+  userdtos.SearchUsersByUsernameRes:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      username:
+        type: string
+    type: object
   userdtos.UpdateProfileReq:
     properties:
       bio:
@@ -149,13 +158,49 @@ paths:
       summary: user profile
       tags:
       - User
+  /users/search-by-user-name:
+    get:
+      description: Search users by their username. The `limit` parameter is optional
+        and defaults to 10 if not provided.
+      parameters:
+      - description: Username prefix to search for
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: Maximum number of users to return (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/userdtos.SearchUsersByUsernameRes'
+            type: array
+        "400":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Search users by username
+      tags:
+      - User
   /users/update-profile:
     put:
       consumes:
       - application/json
-      description: update user name and bio user
+      description: Update user profile. At least one of `username` or `bio` must be
+        provided. Both fields are optional.
       parameters:
-      - description: Update profile credentials (bio is optional)
+      - description: Update profile payload (username and bio are optional, at least
+          one required)
         in: body
         name: data
         required: true
@@ -165,14 +210,18 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Updated user profile
           schema:
             $ref: '#/definitions/userdtos.UpdateProfileRes'
         "400":
-          description: Bad Request
+          description: Validation failed, e.g. no fields provided or invalid values
           schema:
             $ref: '#/definitions/apperror.AppError'
-      summary: update user profile
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Update user profile
       tags:
       - User
 swagger: "2.0"

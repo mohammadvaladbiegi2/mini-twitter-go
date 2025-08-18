@@ -28,27 +28,35 @@ func (r AuthRepository) SignUp(userData authdtos.SignUpReq) (authdtos.SignUpResD
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	checkQuery := `
-		SELECT id FROM users 
-		WHERE username = $1 OR email = $2
-	`
-	var existingID int64
-	err := r.db.QueryRow(ctx, checkQuery, userData.Username, userData.Email).Scan(&existingID)
-	if err == nil {
-		return authdtos.SignUpResDB{}, apperror.Validation("user already exists", nil, nil)
-	} else if err != pgx.ErrNoRows {
-		return authdtos.SignUpResDB{}, apperror.DB("failed to check existing user", err)
+	var exists bool
+	checkUsernameQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)`
+	if err := r.db.QueryRow(ctx, checkUsernameQuery, userData.Username).Scan(&exists); err != nil {
+		return authdtos.SignUpResDB{}, apperror.DB("failed to check username uniqueness", err)
+	}
+	if exists {
+		return authdtos.SignUpResDB{}, apperror.Validation("Validation failed", []map[string]string{
+			{"username": "Username is already taken"},
+		}, nil)
+	}
+
+	checkEmailQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
+	if err := r.db.QueryRow(ctx, checkEmailQuery, userData.Email).Scan(&exists); err != nil {
+		return authdtos.SignUpResDB{}, apperror.DB("failed to check email uniqueness", err)
+	}
+	if exists {
+		return authdtos.SignUpResDB{}, apperror.Validation("Validation failed", []map[string]string{
+			{"email": "Email is already registered"},
+		}, nil)
 	}
 
 	insertQuery := `
 		INSERT INTO users (username, email, password_hash)
 		VALUES ($1, $2, $3)
-		RETURNING id, username;
+		RETURNING id, username
 	`
 	var userID int64
 	var username string
-	err = r.db.QueryRow(ctx, insertQuery, userData.Username, userData.Email, userData.Password).Scan(&userID, &username)
-	if err != nil {
+	if err := r.db.QueryRow(ctx, insertQuery, userData.Username, userData.Email, userData.Password).Scan(&userID, &username); err != nil {
 		return authdtos.SignUpResDB{}, apperror.DB("failed to insert user", err)
 	}
 

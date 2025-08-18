@@ -32,10 +32,12 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	e.POST("/signup", authHandler.SignUp)
 	e.POST("/login", authHandler.Login)
 
+	// route need protection and token
 	authGroup := e.Group("")
 	authGroup.Use(internalMiddleware.JWTauthentication)
 	authGroup.PUT("users/update-profile", userHandler.UpdateProfile)
 	authGroup.GET("users/get-profile", userHandler.GetProfile)
+	authGroup.GET("users/search-by-user-name", userHandler.SearchUsersByUserName)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

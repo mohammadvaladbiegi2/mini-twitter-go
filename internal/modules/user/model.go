@@ -7,8 +7,8 @@ type User struct {
 	Username       string    `json:"username"`
 	Email          string    `json:"email"`
 	PasswordHash   string    `json:"-"`
-	Bio            *string   `json:"bio,omitempty"`
-	AvatarURL      *string   `json:"avatar_url,omitempty"`
+	Bio            *string   `json:"bio"`
+	AvatarURL      *string   `json:"avatar_url"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 	FollowerCount  int64     `json:"follower_count"`

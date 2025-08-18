@@ -133,9 +133,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/search-by-user-name": {
+            "get": {
+                "description": "Search users by their username. The ` + "`" + `limit` + "`" + ` parameter is optional and defaults to 10 if not provided.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Search users by username",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username prefix to search for",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of users to return (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userdtos.SearchUsersByUsernameRes"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation failed",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/update-profile": {
             "put": {
-                "description": "update user name and bio user",
+                "description": "Update user profile. At least one of ` + "`" + `username` + "`" + ` or ` + "`" + `bio` + "`" + ` must be provided. Both fields are optional.",
                 "consumes": [
                     "application/json"
                 ],
@@ -145,10 +195,10 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "update user profile",
+                "summary": "Update user profile",
                 "parameters": [
                     {
-                        "description": "Update profile credentials (bio is optional)",
+                        "description": "Update profile payload (username and bio are optional, at least one required)",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -159,13 +209,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Updated user profile",
                         "schema": {
                             "$ref": "#/definitions/userdtos.UpdateProfileRes"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Validation failed, e.g. no fields provided or invalid values",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/apperror.AppError"
                         }
@@ -235,6 +291,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "userdtos.SearchUsersByUsernameRes": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

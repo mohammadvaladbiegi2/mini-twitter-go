@@ -11,7 +11,7 @@ type ErrorType string
 type AppError struct {
 	Type       ErrorType           `json:"type"`
 	Message    string              `json:"message"`
-	Errors     []map[string]string `json:"errors,omitempty"`
+	Errors     []map[string]string `json:"errors"`
 	StatusCode int                 `json:"status_code"`
 	Err        error               `json:"-"`
 }

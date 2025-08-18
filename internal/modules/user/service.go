@@ -9,6 +9,7 @@ import (
 type Service interface {
 	UpdateProfile(userID int64, updateProfileReq userdtos.UpdateProfileReq) (userdtos.UpdateProfileRes, *apperror.AppError)
 	GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError)
+	SearchUsersByUsername(prefix string, limit int) ([]userdtos.SearchUsersByUsernameRes, *apperror.AppError)
 }
 
 type UserService struct {
@@ -32,6 +33,7 @@ func (u UserService) UpdateProfile(userID int64, updateProfileReq userdtos.Updat
 
 	return userupdate, nil
 }
+
 func (u UserService) GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError) {
 
 	userProfile, err := u.Repo.GetProfile(userID)
@@ -40,4 +42,14 @@ func (u UserService) GetProfile(userID int64) (userdtos.UserGetProfileRes, *appe
 	}
 
 	return userProfile, nil
+}
+
+func (u UserService) SearchUsersByUsername(prefix string, limit int) ([]userdtos.SearchUsersByUsernameRes, *apperror.AppError) {
+
+	users, err := u.Repo.SearchUsersByUsername(prefix, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
