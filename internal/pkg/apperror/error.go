@@ -3,6 +3,7 @@ package apperror
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 )
 
@@ -39,10 +40,24 @@ func Validation(msg string, details []map[string]string, err error) *AppError {
 }
 
 func DB(msg string, err error) *AppError {
+
+	if err != nil {
+		slog.Error("\n========================\nDB ERROR")
+		fmt.Printf("message : %s\n%v\n", msg, err)
+		fmt.Println("========================")
+	}
+
 	return New("DATABASE_ERROR", msg, nil, http.StatusInternalServerError, err)
 }
 
 func Server(msg string, err error) *AppError {
+
+	if err != nil {
+		slog.Error("\n========================\nSERVER ERROR")
+		fmt.Printf("message : %s\n%v\n", msg, err)
+		fmt.Println("========================")
+	}
+
 	return New("SERVER_ERROR", msg, nil, http.StatusInternalServerError, err)
 }
 

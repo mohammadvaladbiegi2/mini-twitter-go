@@ -1,4 +1,4 @@
-package user
+package userprofile
 
 import (
 	"context"
@@ -6,28 +6,28 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
 	userdtos "twitter_clone/internal/modules/user/dto"
 	"twitter_clone/internal/pkg/apperror"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository interface {
 	UpdateProfile(userID int64, updateProfileReq userdtos.UpdateProfileReq) (userdtos.UpdateProfileRes, *apperror.AppError)
 	GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError)
-	SearchUsersByUsername(prefix string, limit int) ([]userdtos.SearchUsersByUsernameRes, *apperror.AppError)
 }
 
-type UserRepository struct {
+type ProfileRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewUserRepository(db *pgxpool.Pool) *UserRepository {
-	return &UserRepository{db}
+func NewProfileRepository(db *pgxpool.Pool) *ProfileRepository {
+	return &ProfileRepository{db}
 }
 
-func (r UserRepository) UpdateProfile(userID int64, req userdtos.UpdateProfileReq) (userdtos.UpdateProfileRes, *apperror.AppError) {
+func (r ProfileRepository) UpdateProfile(userID int64, req userdtos.UpdateProfileReq) (userdtos.UpdateProfileRes, *apperror.AppError) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -77,11 +77,10 @@ func (r UserRepository) UpdateProfile(userID int64, req userdtos.UpdateProfileRe
 	return res, nil
 }
 
-func (r UserRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError) {
+func (r *ProfileRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *apperror.AppError) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// first get user data
 	queryUser := `
 		SELECT username, email, bio, avatar_url, follower_count, following_count
 		FROM users
@@ -104,7 +103,6 @@ func (r UserRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *a
 		return userdtos.UserGetProfileRes{}, apperror.DB("failed to get user profile", err)
 	}
 
-	// get user tweets
 	queryTweets := `
     SELECT
         t.id,
@@ -119,7 +117,7 @@ func (r UserRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *a
     WHERE t.user_id = $1
     GROUP BY t.id
     ORDER BY t.created_at DESC;
-`
+	`
 
 	rows, err := r.db.Query(ctx, queryTweets, userID)
 	if err != nil {
@@ -143,41 +141,4 @@ func (r UserRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes, *a
 	}
 
 	return res, nil
-}
-
-func (r *UserRepository) SearchUsersByUsername(prefix string, limit int) ([]userdtos.SearchUsersByUsernameRes, *apperror.AppError) {
-	if limit <= 0 || limit > 50 {
-		limit = 10
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	const q = `
-		SELECT username, bio, avatar_url
-		FROM users
-		WHERE LOWER(username) LIKE LOWER($1) || '%'
-		ORDER BY username
-		LIMIT $2;
-	`
-
-	rows, err := r.db.Query(ctx, q, prefix, limit)
-	if err != nil {
-		return nil, apperror.DB("failed to search users", err)
-	}
-	defer rows.Close()
-
-	users := make([]userdtos.SearchUsersByUsernameRes, 0, limit)
-	for rows.Next() {
-		var u userdtos.SearchUsersByUsernameRes
-		if err := rows.Scan(&u.Username, &u.Bio, &u.AvatarURL); err != nil {
-			return nil, apperror.DB("failed to scan user row", err)
-		}
-		users = append(users, u)
-	}
-	if rows.Err() != nil {
-		return nil, apperror.DB("rows iteration error", rows.Err())
-	}
-
-	return users, nil
 }

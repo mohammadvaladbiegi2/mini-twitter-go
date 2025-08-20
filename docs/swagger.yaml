@@ -40,6 +40,11 @@ definitions:
       token:
         type: string
     type: object
+  tweet.SimpleResMessage:
+    properties:
+      message:
+        type: string
+    type: object
   tweetdtos.CreateTweetRes:
     properties:
       content:
@@ -53,6 +58,28 @@ definitions:
       user_id:
         type: integer
     type: object
+  user.SimpleResMessage:
+    properties:
+      message:
+        type: string
+    type: object
+  userdtos.GetUserByUsernameRes:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      follower_count:
+        type: integer
+      following_count:
+        type: integer
+      tweets:
+        items:
+          $ref: '#/definitions/userdtos.Tweets'
+        type: array
+      username:
+        type: string
+    type: object
   userdtos.SearchUsersByUsernameRes:
     properties:
       avatar_url:
@@ -63,6 +90,23 @@ definitions:
         type: string
     type: object
   userdtos.TweetForProfile:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      dislike_count:
+        type: integer
+      id:
+        type: integer
+      like_count:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  userdtos.Tweets:
     properties:
       content:
         type: string
@@ -175,6 +219,66 @@ paths:
       summary: Sign up a new user
       tags:
       - Auth
+  /tweets/{tweet_id}/dislike:
+    post:
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: tweet_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tweet.SimpleResMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Dislike a tweet
+      tags:
+      - Tweet Action
+  /tweets/{tweet_id}/like:
+    post:
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: tweet_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tweet.SimpleResMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Like a tweet
+      tags:
+      - Tweet Action
+  /tweets/{tweet_id}/reaction:
+    delete:
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: tweet_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tweet.SimpleResMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Remove reaction
+      tags:
+      - Tweet Action
   /tweets/create-new-tweet:
     post:
       description: Create new tweet, The `tags` field is optional
@@ -192,6 +296,57 @@ paths:
       summary: new Tweet
       tags:
       - Tweet
+  /users/follow/{target_id}:
+    post:
+      parameters:
+      - description: Target user ID
+        in: query
+        name: target_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.SimpleResMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Follow a user
+      tags:
+      - User Actions
+  /users/get-by-user-name/{username}:
+    get:
+      description: Search users by their `username`
+      parameters:
+      - description: User name prefix to search for
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/userdtos.GetUserByUsernameRes'
+            type: array
+        "400":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: get users by username
+      tags:
+      - User Search
   /users/get-profile:
     get:
       description: get  user profile
@@ -208,13 +363,13 @@ paths:
             $ref: '#/definitions/apperror.AppError'
       summary: user profile
       tags:
-      - User
-  /users/search-by-user-name:
+      - User Profile
+  /users/search-by-user-name/{username}:
     get:
       description: Search users by their username. The `limit` parameter is optional
         and defaults to 10 if not provided.
       parameters:
-      - description: Username prefix to search for
+      - description: User name prefix to search for
         in: query
         name: username
         required: true
@@ -242,7 +397,29 @@ paths:
             $ref: '#/definitions/apperror.AppError'
       summary: Search users by username
       tags:
-      - User
+      - User Search
+  /users/unfollow/{target_id}:
+    post:
+      parameters:
+      - description: Target user ID
+        in: query
+        name: target_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.SimpleResMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Unfollow a user
+      tags:
+      - User Actions
   /users/update-profile:
     put:
       consumes:
@@ -274,5 +451,5 @@ paths:
             $ref: '#/definitions/apperror.AppError'
       summary: Update user profile
       tags:
-      - User
+      - User Profile
 swagger: "2.0"

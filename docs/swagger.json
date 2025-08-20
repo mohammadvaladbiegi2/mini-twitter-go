@@ -122,6 +122,177 @@
                 }
             }
         },
+        "/tweets/{tweet_id}/dislike": {
+            "post": {
+                "tags": [
+                    "Tweet Action"
+                ],
+                "summary": "Dislike a tweet",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tweet ID",
+                        "name": "tweet_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tweet.SimpleResMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/tweets/{tweet_id}/like": {
+            "post": {
+                "tags": [
+                    "Tweet Action"
+                ],
+                "summary": "Like a tweet",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tweet ID",
+                        "name": "tweet_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tweet.SimpleResMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/tweets/{tweet_id}/reaction": {
+            "delete": {
+                "tags": [
+                    "Tweet Action"
+                ],
+                "summary": "Remove reaction",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tweet ID",
+                        "name": "tweet_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tweet.SimpleResMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/follow/{target_id}": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Actions"
+                ],
+                "summary": "Follow a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target user ID",
+                        "name": "target_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.SimpleResMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/get-by-user-name/{username}": {
+            "get": {
+                "description": "Search users by their `username`",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Search"
+                ],
+                "summary": "get users by username",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User name prefix to search for",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userdtos.GetUserByUsernameRes"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation failed",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/get-profile": {
             "get": {
                 "description": "get  user profile",
@@ -129,7 +300,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "User Profile"
                 ],
                 "summary": "user profile",
                 "responses": {
@@ -148,20 +319,20 @@
                 }
             }
         },
-        "/users/search-by-user-name": {
+        "/users/search-by-user-name/{username}": {
             "get": {
                 "description": "Search users by their username. The `limit` parameter is optional and defaults to 10 if not provided.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "User Search"
                 ],
                 "summary": "Search users by username",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Username prefix to search for",
+                        "description": "User name prefix to search for",
                         "name": "username",
                         "in": "query",
                         "required": true
@@ -198,6 +369,40 @@
                 }
             }
         },
+        "/users/unfollow/{target_id}": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Actions"
+                ],
+                "summary": "Unfollow a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target user ID",
+                        "name": "target_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.SimpleResMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/update-profile": {
             "put": {
                 "description": "Update user profile. At least one of `username` or `bio` must be provided. Both fields are optional.",
@@ -208,7 +413,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "User Profile"
                 ],
                 "summary": "Update user profile",
                 "parameters": [
@@ -310,6 +515,14 @@
                 }
             }
         },
+        "tweet.SimpleResMessage": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "tweetdtos.CreateTweetRes": {
             "type": "object",
             "properties": {
@@ -330,6 +543,40 @@
                 }
             }
         },
+        "user.SimpleResMessage": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "userdtos.GetUserByUsernameRes": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "follower_count": {
+                    "type": "integer"
+                },
+                "following_count": {
+                    "type": "integer"
+                },
+                "tweets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/userdtos.Tweets"
+                    }
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "userdtos.SearchUsersByUsernameRes": {
             "type": "object",
             "properties": {
@@ -345,6 +592,32 @@
             }
         },
         "userdtos.TweetForProfile": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dislike_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "like_count": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "userdtos.Tweets": {
             "type": "object",
             "properties": {
                 "content": {

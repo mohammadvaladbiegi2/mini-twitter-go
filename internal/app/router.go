@@ -4,7 +4,11 @@ import (
 	internalMiddleware "twitter_clone/internal/middleware"
 	"twitter_clone/internal/modules/auth"
 	"twitter_clone/internal/modules/tweet"
+	tweetaction "twitter_clone/internal/modules/tweet/action"
 	"twitter_clone/internal/modules/user"
+	useraction "twitter_clone/internal/modules/user/action"
+	userprofile "twitter_clone/internal/modules/user/profile"
+	usersearch "twitter_clone/internal/modules/user/search"
 
 	"github.com/labstack/echo/v4/middleware"
 
@@ -25,14 +29,25 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authHandler := auth.NewAuthHandler(authService)
 
 	// Create user Dependency
-	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo)
-	userHandler := user.NewUserHandler(userService)
+
+	userProfileRepo := userprofile.NewProfileRepository(db)
+	userProfileService := userprofile.NewProfileService(userProfileRepo)
+
+	userActionRepo := useraction.NewUserActionRepository(db)
+	userActionService := useraction.NewUserActionService(userActionRepo)
+
+	userSearchRepo := usersearch.NewSearchRepository(db)
+	userSearchService := usersearch.NewSearchService(userSearchRepo)
+
+	userHandler := user.NewUserHandler(userProfileService, userSearchService, userActionService)
 
 	// Create tweet Dependency
 	tweetRepo := tweet.NewRepository(db)
 	tweetService := tweet.NewTweetService(tweetRepo)
-	tweetHandler := tweet.NewTweetHandler(tweetService)
+	tweetActionRepo := tweetaction.NewUserActionRepository(db)
+	tweetActionService := tweetaction.NewTweetActionService(tweetActionRepo)
+
+	tweetHandler := tweet.NewTweetHandler(tweetService, tweetActionService)
 
 	// Routs
 	e.POST("/signup", authHandler.SignUp)
@@ -45,10 +60,16 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	// user
 	authGroup.PUT("users/update-profile", userHandler.UpdateProfile)
 	authGroup.GET("users/get-profile", userHandler.GetProfile)
-	authGroup.GET("users/search-by-user-name", userHandler.SearchUsersByUserName)
+	authGroup.GET("users/search-by-user-name/username", userHandler.SearchUsersByUserName)
+	authGroup.GET("users/get-by-user-name/username", userHandler.GetUserByUsername)
+	authGroup.POST("users/follow/:target_id", userHandler.Follow)
+	authGroup.POST("users/unfollow/:target_id", userHandler.Unfollow)
 
 	// tweet
 	authGroup.POST("tweets/create-new-tweet", tweetHandler.CreateNewTweet)
+	authGroup.POST("tweets/:tweet_id/like", tweetHandler.Like)
+	authGroup.POST("tweets/:tweet_id/dislike", tweetHandler.Dislike)
+	authGroup.DELETE("tweets/:tweet_id/reaction", tweetHandler.RemoveReaction)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

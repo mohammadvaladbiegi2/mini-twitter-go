@@ -3,24 +3,37 @@ package user
 import (
 	"net/http"
 	"strconv"
+	useraction "twitter_clone/internal/modules/user/action"
 	userdtos "twitter_clone/internal/modules/user/dto"
+	userprofile "twitter_clone/internal/modules/user/profile"
+	usersearch "twitter_clone/internal/modules/user/search"
 	"twitter_clone/internal/pkg/apperror"
 
 	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
-	service Service
+	profileService userprofile.Service
+	searchService  usersearch.Service
+	actionService  useraction.Service
 }
 
-func NewUserHandler(service Service) *Handler {
-	return &Handler{service: service}
+func NewUserHandler(profileService userprofile.Service, searchService usersearch.Service, actionService useraction.Service) *Handler {
+	return &Handler{
+		profileService: profileService,
+		searchService:  searchService,
+		actionService:  actionService,
+	}
+}
+
+type SimpleResMessage struct {
+	Message string `json:"message"`
 }
 
 // User godoc
 // @Summary      Update user profile
 // @Description  Update user profile. At least one of `username` or `bio` must be provided. Both fields are optional.
-// @Tags         User
+// @Tags         User Profile
 // @Accept       json
 // @Produce      json
 // @Param        data body userdtos.UpdateProfileReq true "Update profile payload (username and bio are optional, at least one required)"
@@ -36,7 +49,7 @@ func (h *Handler) UpdateProfile(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, apperror.Validation("Invalid request body", nil, err))
 	}
 
-	userUpdated, appErr := h.service.UpdateProfile(userID, req)
+	userUpdated, appErr := h.profileService.UpdateProfile(userID, req)
 	if appErr != nil {
 		return c.JSON(appErr.StatusCode, appErr)
 	}
@@ -47,7 +60,7 @@ func (h *Handler) UpdateProfile(c echo.Context) error {
 // User godoc
 // @Summary      user profile
 // @Description  get  user profile
-// @Tags         User
+// @Tags         User Profile
 // @Produce      json
 // @Success      200 {object} userdtos.UserGetProfileRes
 // @Failure      400 {object} apperror.AppError
@@ -55,7 +68,7 @@ func (h *Handler) UpdateProfile(c echo.Context) error {
 func (h *Handler) GetProfile(c echo.Context) error {
 	userID := c.Get("userID").(int64)
 
-	userProfile, appErr := h.service.GetProfile(userID)
+	userProfile, appErr := h.profileService.GetProfile(userID)
 	if appErr != nil {
 		return c.JSON(appErr.StatusCode, appErr)
 	}
@@ -66,14 +79,14 @@ func (h *Handler) GetProfile(c echo.Context) error {
 // User godoc
 // @Summary      Search users by username
 // @Description  Search users by their username. The `limit` parameter is optional and defaults to 10 if not provided.
-// @Tags         User
+// @Tags         User Search
 // @Produce      json
-// @Param        username query string true  "Username prefix to search for"
+// @Param        username query string true  "User name prefix to search for"
 // @Param        limit    query int    false "Maximum number of users to return (default 10)"
 // @Success      200 {array} userdtos.SearchUsersByUsernameRes
 // @Failure      400 {object} apperror.AppError "Validation failed"
 // @Failure      500 {object} apperror.AppError "Internal server error"
-// @Router       /users/search-by-user-name [get]
+// @Router       /users/search-by-user-name/{username}  [get]
 func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 	var validationErrors []map[string]string
 	username := c.QueryParam("username")
@@ -103,10 +116,85 @@ func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 		}
 	}
 
-	users, Serror := h.service.SearchUsersByUsername(username, limit)
+	users, Serror := h.searchService.SearchUsersByUsername(username, limit)
 	if Serror != nil {
 		return c.JSON(Serror.StatusCode, Serror)
 	}
 
 	return c.JSON(http.StatusOK, users)
+}
+
+// User godoc
+// @Summary      get users by username
+// @Description  Search users by their `username`
+// @Tags         User Search
+// @Produce      json
+// @Param        username query string true  "User name prefix to search for"
+// @Success      200 {array} userdtos.GetUserByUsernameRes
+// @Failure      400 {object} apperror.AppError "Validation failed"
+// @Failure      500 {object} apperror.AppError "Internal server error"
+// @Router       /users/get-by-user-name/{username}  [get]
+func (h *Handler) GetUserByUsername(c echo.Context) error {
+	var validationErrors []map[string]string
+	username := c.QueryParam("username")
+	if username == "" {
+		validationErrors = append(validationErrors, map[string]string{
+			"error": "username query parameter is required",
+		})
+
+		return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
+	}
+
+	userID := c.Get("userID").(int64)
+
+	users, Serror := h.searchService.GetUserByUsername(username, userID)
+	if Serror != nil {
+		return c.JSON(Serror.StatusCode, Serror)
+	}
+
+	return c.JSON(http.StatusOK, users)
+}
+
+// @Summary      Follow a user
+// @Tags         User Actions
+// @Produce      json
+// @Param        target_id query int true "Target user ID"
+// @Success      200 {object} SimpleResMessage
+// @Failure      400 {object} apperror.AppError
+// @Router       /users/follow/{target_id}  [post]
+func (h *Handler) Follow(c echo.Context) error {
+	userID := c.Get("userID").(int64)
+	targetID, err := strconv.ParseInt(c.QueryParam("target_id"), 10, 64)
+	if err != nil || targetID <= 0 {
+		return c.JSON(http.StatusBadRequest, apperror.Validation("invalid target_id", nil, err))
+	}
+
+	appErr := h.actionService.Follow(userID, targetID)
+	if appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Followed successfully"})
+}
+
+// @Summary      Unfollow a user
+// @Tags         User Actions
+// @Produce      json
+// @Param        target_id query int true "Target user ID"
+// @Success      200 {object} SimpleResMessage
+// @Failure      400 {object} apperror.AppError
+// @Router       /users/unfollow/{target_id} [post]
+func (h *Handler) Unfollow(c echo.Context) error {
+	userID := c.Get("userID").(int64)
+	targetID, err := strconv.ParseInt(c.QueryParam("target_id"), 10, 64)
+	if err != nil || targetID <= 0 {
+		return c.JSON(http.StatusBadRequest, apperror.Validation("invalid target_id", nil, err))
+	}
+
+	appErr := h.actionService.Unfollow(userID, targetID)
+	if appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Unfollowed successfully"})
 }
