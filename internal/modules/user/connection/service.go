@@ -20,6 +20,8 @@ func NewUserConnectionService(repo Repository) *UserConnectionService {
 
 func (u *UserConnectionService) GetFollowers(userID int64, limit, offset int) ([]userdtos.UsersFollower, *apperror.AppError) {
 
+	// TODO handel offset
+
 	users, err := u.Repo.GetFollowers(userID, limit, offset)
 	if err != nil {
 		return nil, err
@@ -29,6 +31,9 @@ func (u *UserConnectionService) GetFollowers(userID int64, limit, offset int) ([
 }
 
 func (u *UserConnectionService) GetFollowings(userID int64, limit, offset int) ([]userdtos.UsersFollowing, *apperror.AppError) {
+
+	// TODO handel offset
+
 	users, err := u.Repo.GetFollowings(userID, limit, offset)
 	if err != nil {
 		return nil, err
