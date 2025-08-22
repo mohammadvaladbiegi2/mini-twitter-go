@@ -17,6 +17,8 @@ type UsersFollowersRes struct {
 	Limit     int             `json:"limit"`
 	Offset    int             `json:"offset"`
 	Count     int             `json:"count"`
+	Total     int64           `json:"total"`
+	HasNext   bool            `json:"has_next"`
 }
 
 type UsersFollowingsRes struct {
@@ -24,4 +26,6 @@ type UsersFollowingsRes struct {
 	Limit      int              `json:"limit"`
 	Offset     int              `json:"offset"`
 	Count      int              `json:"count"`
+	Total      int64            `json:"total"`
+	HasNext    bool             `json:"has_next"`
 }

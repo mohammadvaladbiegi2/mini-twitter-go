@@ -204,11 +204,12 @@ func (h *Handler) Unfollow(c echo.Context) error {
 
 // GetFollowers godoc
 // @Summary      Get followers of a user
-// @Description  Returns a list of followers for the authenticated user. Limit is optional, offset is handled server-side.
+// @Description  Returns a paginated list of followers for the authenticated user.
 // @Tags         User Connection
 // @Produce      json
-// @Param        limit query int false "Number of followers to return (max 50)"
-// @Success      200 {object} userdtos.UsersFollowersRes "followers list, limit, offset, count"
+// @Param        page query int false "Page number (default 1)"
+// @Param        page_size query int false "Number of items per page (max 50, default 10)"
+// @Success      200 {object} userdtos.UsersFollowersRes
 // @Failure      400 {object} apperror.AppError "Validation error"
 // @Failure      500 {object} apperror.AppError "Database or server error"
 // @Router       /users/followers [get]
@@ -217,33 +218,45 @@ func (h *Handler) GetFollowers(c echo.Context) error {
 
 	userID := c.Get("userID").(int64)
 
-	maxLimit := 50
-	limit := 10
-	if param := c.QueryParam("limit"); param != "" {
+	page := 1
+	if param := c.QueryParam("page"); param != "" {
 		if num, err := strconv.Atoi(param); err != nil || num <= 0 {
 			validationErrors = append(validationErrors, map[string]string{
-				"error": "limit must be a positive integer",
+				"error": "page must be a positive integer",
 			})
 			return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
-		} else if num > maxLimit {
-			limit = maxLimit
 		} else {
-			limit = num
+			page = num
 		}
 	}
 
-	offset := 0
+	pageSize := 10
+	maxPageSize := 50
+	if param := c.QueryParam("page_size"); param != "" {
+		if num, err := strconv.Atoi(param); err != nil || num <= 0 {
+			validationErrors = append(validationErrors, map[string]string{
+				"error": "page_size must be a positive integer",
+			})
+			return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
+		} else if num > maxPageSize {
+			pageSize = maxPageSize
+		} else {
+			pageSize = num
+		}
+	}
 
-	followers, appErr := h.connectionService.GetFollowers(userID, limit, offset)
+	result, appErr := h.connectionService.GetFollowers(userID, page, pageSize)
 	if appErr != nil {
 		return c.JSON(appErr.StatusCode, appErr)
 	}
 
 	response := userdtos.UsersFollowersRes{
-		Followers: followers,
-		Limit:     limit,
-		Offset:    offset,
-		Count:     len(followers),
+		Followers: result.Data,
+		Limit:     result.PageSize,
+		Offset:    (result.CurrentPage - 1) * result.PageSize,
+		Count:     len(result.Data),
+		Total:     result.TotalCount,
+		HasNext:   result.HasNext,
 	}
 
 	return c.JSON(http.StatusOK, response)
@@ -251,11 +264,12 @@ func (h *Handler) GetFollowers(c echo.Context) error {
 
 // GetFollowings godoc
 // @Summary      Get followings of a user
-// @Description  Returns a list of followings for the given target user. Limit is optional, offset is handled server-side.
+// @Description  Returns a paginated list of followings for the authenticated user.
 // @Tags         User Connection
 // @Produce      json
-// @Param        limit query int false "Number of followings to return (max 50)"
-// @Success      200 {object} userdtos.UsersFollowingsRes "followings list, limit, offset, count"
+// @Param        page query int false "Page number (default 1)"
+// @Param        page_size query int false "Number of items per page (max 50, default 10)"
+// @Success      200 {object} userdtos.UsersFollowingsRes
 // @Failure      400 {object} apperror.AppError "Validation error"
 // @Failure      500 {object} apperror.AppError "Database or server error"
 // @Router       /users/followings [get]
@@ -264,35 +278,45 @@ func (h *Handler) GetFollowings(c echo.Context) error {
 
 	userID := c.Get("userID").(int64)
 
-	maxLimit := 50
-	limit := 10
-	if param := c.QueryParam("limit"); param != "" {
+	page := 1
+	if param := c.QueryParam("page"); param != "" {
 		if num, err := strconv.Atoi(param); err != nil || num <= 0 {
 			validationErrors = append(validationErrors, map[string]string{
-				"error": "limit must be a positive integer",
+				"error": "page must be a positive integer",
 			})
 			return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
 		} else {
-			if num > maxLimit {
-				limit = maxLimit
-			} else {
-				limit = num
-			}
+			page = num
 		}
 	}
 
-	offset := 0
+	pageSize := 10
+	maxPageSize := 50
+	if param := c.QueryParam("page_size"); param != "" {
+		if num, err := strconv.Atoi(param); err != nil || num <= 0 {
+			validationErrors = append(validationErrors, map[string]string{
+				"error": "page_size must be a positive integer",
+			})
+			return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
+		} else if num > maxPageSize {
+			pageSize = maxPageSize
+		} else {
+			pageSize = num
+		}
+	}
 
-	followings, appErr := h.connectionService.GetFollowings(userID, limit, offset)
+	result, appErr := h.connectionService.GetFollowings(userID, page, pageSize)
 	if appErr != nil {
 		return c.JSON(appErr.StatusCode, appErr)
 	}
 
 	response := userdtos.UsersFollowingsRes{
-		Followings: followings,
-		Limit:      limit,
-		Offset:     offset,
-		Count:      len(followings),
+		Followings: result.Data,
+		Limit:      result.PageSize,
+		Offset:     (result.CurrentPage - 1) * result.PageSize,
+		Count:      len(result.Data),
+		Total:      result.TotalCount,
+		HasNext:    result.HasNext,
 	}
 
 	return c.JSON(http.StatusOK, response)

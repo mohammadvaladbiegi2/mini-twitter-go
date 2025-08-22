@@ -262,7 +262,7 @@ const docTemplate = `{
         },
         "/users/followers": {
             "get": {
-                "description": "Returns a list of followers for the authenticated user. Limit is optional, offset is handled server-side.",
+                "description": "Returns a paginated list of followers for the authenticated user.",
                 "produces": [
                     "application/json"
                 ],
@@ -273,14 +273,20 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Number of followers to return (max 50)",
-                        "name": "limit",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page (max 50, default 10)",
+                        "name": "page_size",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "followers list, limit, offset, count",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/userdtos.UsersFollowersRes"
                         }
@@ -302,7 +308,7 @@ const docTemplate = `{
         },
         "/users/followings": {
             "get": {
-                "description": "Returns a list of followings for the given target user. Limit is optional, offset is handled server-side.",
+                "description": "Returns a paginated list of followings for the authenticated user.",
                 "produces": [
                     "application/json"
                 ],
@@ -313,14 +319,20 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Number of followings to return (max 50)",
-                        "name": "limit",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page (max 50, default 10)",
+                        "name": "page_size",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "followings list, limit, offset, count",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/userdtos.UsersFollowingsRes"
                         }
@@ -811,10 +823,16 @@ const docTemplate = `{
                         "$ref": "#/definitions/userdtos.UsersFollower"
                     }
                 },
+                "has_next": {
+                    "type": "boolean"
+                },
                 "limit": {
                     "type": "integer"
                 },
                 "offset": {
+                    "type": "integer"
+                },
+                "total": {
                     "type": "integer"
                 }
             }
@@ -845,10 +863,16 @@ const docTemplate = `{
                         "$ref": "#/definitions/userdtos.UsersFollowing"
                     }
                 },
+                "has_next": {
+                    "type": "boolean"
+                },
                 "limit": {
                     "type": "integer"
                 },
                 "offset": {
+                    "type": "integer"
+                },
+                "total": {
                     "type": "integer"
                 }
             }

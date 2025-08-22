@@ -173,9 +173,13 @@ definitions:
         items:
           $ref: '#/definitions/userdtos.UsersFollower'
         type: array
+      has_next:
+        type: boolean
       limit:
         type: integer
       offset:
+        type: integer
+      total:
         type: integer
     type: object
   userdtos.UsersFollowing:
@@ -195,9 +199,13 @@ definitions:
         items:
           $ref: '#/definitions/userdtos.UsersFollowing'
         type: array
+      has_next:
+        type: boolean
       limit:
         type: integer
       offset:
+        type: integer
+      total:
         type: integer
     type: object
 info:
@@ -364,18 +372,21 @@ paths:
       - User Actions
   /users/followers:
     get:
-      description: Returns a list of followers for the authenticated user. Limit is
-        optional, offset is handled server-side.
+      description: Returns a paginated list of followers for the authenticated user.
       parameters:
-      - description: Number of followers to return (max 50)
+      - description: Page number (default 1)
         in: query
-        name: limit
+        name: page
+        type: integer
+      - description: Number of items per page (max 50, default 10)
+        in: query
+        name: page_size
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: followers list, limit, offset, count
+          description: OK
           schema:
             $ref: '#/definitions/userdtos.UsersFollowersRes'
         "400":
@@ -391,18 +402,21 @@ paths:
       - User Connection
   /users/followings:
     get:
-      description: Returns a list of followings for the given target user. Limit is
-        optional, offset is handled server-side.
+      description: Returns a paginated list of followings for the authenticated user.
       parameters:
-      - description: Number of followings to return (max 50)
+      - description: Page number (default 1)
         in: query
-        name: limit
+        name: page
+        type: integer
+      - description: Number of items per page (max 50, default 10)
+        in: query
+        name: page_size
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: followings list, limit, offset, count
+          description: OK
           schema:
             $ref: '#/definitions/userdtos.UsersFollowingsRes'
         "400":
