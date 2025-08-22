@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	useraction "twitter_clone/internal/modules/user/action"
+	userconnection "twitter_clone/internal/modules/user/connection"
 	userdtos "twitter_clone/internal/modules/user/dto"
 	userprofile "twitter_clone/internal/modules/user/profile"
 	usersearch "twitter_clone/internal/modules/user/search"
@@ -13,16 +14,18 @@ import (
 )
 
 type Handler struct {
-	profileService userprofile.Service
-	searchService  usersearch.Service
-	actionService  useraction.Service
+	profileService    userprofile.Service
+	searchService     usersearch.Service
+	actionService     useraction.Service
+	connectionService userconnection.Service
 }
 
-func NewUserHandler(profileService userprofile.Service, searchService usersearch.Service, actionService useraction.Service) *Handler {
+func NewUserHandler(profileService userprofile.Service, searchService usersearch.Service, actionService useraction.Service, connectionService userconnection.Service) *Handler {
 	return &Handler{
-		profileService: profileService,
-		searchService:  searchService,
-		actionService:  actionService,
+		profileService:    profileService,
+		searchService:     searchService,
+		actionService:     actionService,
+		connectionService: connectionService,
 	}
 }
 
@@ -161,7 +164,7 @@ func (h *Handler) GetUserByUsername(c echo.Context) error {
 // @Param        target_id query int true "Target user ID"
 // @Success      200 {object} SimpleResMessage
 // @Failure      400 {object} apperror.AppError
-// @Router       /users/follow/{target_id}  [post]
+// @Router       /users/follow  [post]
 func (h *Handler) Follow(c echo.Context) error {
 	userID := c.Get("userID").(int64)
 	targetID, err := strconv.ParseInt(c.QueryParam("target_id"), 10, 64)
@@ -183,7 +186,7 @@ func (h *Handler) Follow(c echo.Context) error {
 // @Param        target_id query int true "Target user ID"
 // @Success      200 {object} SimpleResMessage
 // @Failure      400 {object} apperror.AppError
-// @Router       /users/unfollow/{target_id} [post]
+// @Router       /users/unfollow [post]
 func (h *Handler) Unfollow(c echo.Context) error {
 	userID := c.Get("userID").(int64)
 	targetID, err := strconv.ParseInt(c.QueryParam("target_id"), 10, 64)
@@ -197,4 +200,100 @@ func (h *Handler) Unfollow(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "Unfollowed successfully"})
+}
+
+// GetFollowers godoc
+// @Summary      Get followers of a user
+// @Description  Returns a list of followers for the authenticated user. Limit is optional, offset is handled server-side.
+// @Tags         User Connection
+// @Produce      json
+// @Param        limit query int false "Number of followers to return (max 50)"
+// @Success      200 {object} userdtos.UsersFollowersRes "followers list, limit, offset, count"
+// @Failure      400 {object} apperror.AppError "Validation error"
+// @Failure      500 {object} apperror.AppError "Database or server error"
+// @Router       /users/followers [get]
+func (h *Handler) GetFollowers(c echo.Context) error {
+	var validationErrors []map[string]string
+
+	userID := c.Get("userID").(int64)
+
+	maxLimit := 50
+	limit := 10
+	if param := c.QueryParam("limit"); param != "" {
+		if num, err := strconv.Atoi(param); err != nil || num <= 0 {
+			validationErrors = append(validationErrors, map[string]string{
+				"error": "limit must be a positive integer",
+			})
+			return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
+		} else if num > maxLimit {
+			limit = maxLimit
+		} else {
+			limit = num
+		}
+	}
+
+	offset := 0
+
+	followers, appErr := h.connectionService.GetFollowers(userID, limit, offset)
+	if appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+
+	response := userdtos.UsersFollowersRes{
+		Followers: followers,
+		Limit:     limit,
+		Offset:    offset,
+		Count:     len(followers),
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+// GetFollowings godoc
+// @Summary      Get followings of a user
+// @Description  Returns a list of followings for the given target user. Limit is optional, offset is handled server-side.
+// @Tags         User Connection
+// @Produce      json
+// @Param        limit query int false "Number of followings to return (max 50)"
+// @Success      200 {object} userdtos.UsersFollowingsRes "followings list, limit, offset, count"
+// @Failure      400 {object} apperror.AppError "Validation error"
+// @Failure      500 {object} apperror.AppError "Database or server error"
+// @Router       /users/followings [get]
+func (h *Handler) GetFollowings(c echo.Context) error {
+	var validationErrors []map[string]string
+
+	userID := c.Get("userID").(int64)
+
+	maxLimit := 50
+	limit := 10
+	if param := c.QueryParam("limit"); param != "" {
+		if num, err := strconv.Atoi(param); err != nil || num <= 0 {
+			validationErrors = append(validationErrors, map[string]string{
+				"error": "limit must be a positive integer",
+			})
+			return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
+		} else {
+			if num > maxLimit {
+				limit = maxLimit
+			} else {
+				limit = num
+			}
+		}
+	}
+
+	offset := 0
+
+	followings, appErr := h.connectionService.GetFollowings(userID, limit, offset)
+	if appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+
+	response := userdtos.UsersFollowingsRes{
+		Followings: followings,
+		Limit:      limit,
+		Offset:     offset,
+		Count:      len(followings),
+	}
+
+	return c.JSON(http.StatusOK, response)
 }

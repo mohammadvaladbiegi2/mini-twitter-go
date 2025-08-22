@@ -226,7 +226,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/follow/{target_id}": {
+        "/users/follow": {
             "post": {
                 "produces": [
                     "application/json"
@@ -253,6 +253,86 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/followers": {
+            "get": {
+                "description": "Returns a list of followers for the authenticated user. Limit is optional, offset is handled server-side.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Connection"
+                ],
+                "summary": "Get followers of a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of followers to return (max 50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "followers list, limit, offset, count",
+                        "schema": {
+                            "$ref": "#/definitions/userdtos.UsersFollowersRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Database or server error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/followings": {
+            "get": {
+                "description": "Returns a list of followings for the given target user. Limit is optional, offset is handled server-side.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Connection"
+                ],
+                "summary": "Get followings of a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of followings to return (max 50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "followings list, limit, offset, count",
+                        "schema": {
+                            "$ref": "#/definitions/userdtos.UsersFollowingsRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Database or server error",
                         "schema": {
                             "$ref": "#/definitions/apperror.AppError"
                         }
@@ -380,7 +460,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/unfollow/{target_id}": {
+        "/users/unfollow": {
             "post": {
                 "produces": [
                     "application/json"
@@ -702,6 +782,74 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "userdtos.UsersFollower": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "userdtos.UsersFollowersRes": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "followers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/userdtos.UsersFollower"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                }
+            }
+        },
+        "userdtos.UsersFollowing": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "userdtos.UsersFollowingsRes": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "followings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/userdtos.UsersFollowing"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
                 }
             }
         }

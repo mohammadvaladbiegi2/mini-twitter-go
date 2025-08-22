@@ -7,6 +7,7 @@ import (
 	tweetaction "twitter_clone/internal/modules/tweet/action"
 	"twitter_clone/internal/modules/user"
 	useraction "twitter_clone/internal/modules/user/action"
+	userconnection "twitter_clone/internal/modules/user/connection"
 	userprofile "twitter_clone/internal/modules/user/profile"
 	usersearch "twitter_clone/internal/modules/user/search"
 
@@ -39,7 +40,10 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	userSearchRepo := usersearch.NewSearchRepository(db)
 	userSearchService := usersearch.NewSearchService(userSearchRepo)
 
-	userHandler := user.NewUserHandler(userProfileService, userSearchService, userActionService)
+	userConnectionRepo := userconnection.NewUserConnectionRepository(db)
+	userConnectionService := userconnection.NewUserConnectionService(userConnectionRepo)
+
+	userHandler := user.NewUserHandler(userProfileService, userSearchService, userActionService, userConnectionService)
 
 	// Create tweet Dependency
 	tweetRepo := tweet.NewRepository(db)
@@ -62,8 +66,10 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup.GET("users/get-profile", userHandler.GetProfile)
 	authGroup.GET("users/search-by-user-name/username", userHandler.SearchUsersByUserName)
 	authGroup.GET("users/get-by-user-name/username", userHandler.GetUserByUsername)
-	authGroup.POST("users/follow/:target_id", userHandler.Follow)
-	authGroup.POST("users/unfollow/:target_id", userHandler.Unfollow)
+	authGroup.POST("users/follow", userHandler.Follow)
+	authGroup.POST("users/unfollow", userHandler.Unfollow)
+	authGroup.GET("users/followers", userHandler.GetFollowers)
+	authGroup.GET("users/followings", userHandler.GetFollowings)
 
 	// tweet
 	authGroup.POST("tweets/create-new-tweet", tweetHandler.CreateNewTweet)
