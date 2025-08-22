@@ -45,6 +45,16 @@ definitions:
       message:
         type: string
     type: object
+  tweetdtos.CreateReplyReq:
+    properties:
+      content:
+        type: string
+    type: object
+  tweetdtos.CreateReplyRes:
+    properties:
+      reply:
+        $ref: '#/definitions/tweetdtos.Reply'
+    type: object
   tweetdtos.CreateTweetRes:
     properties:
       content:
@@ -57,6 +67,34 @@ definitions:
         type: array
       user_id:
         type: integer
+    type: object
+  tweetdtos.GetRepliesRes:
+    properties:
+      count:
+        type: integer
+      next_cursor:
+        type: integer
+      replies:
+        items:
+          $ref: '#/definitions/tweetdtos.Reply'
+        type: array
+    type: object
+  tweetdtos.Reply:
+    properties:
+      avatar_url:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      tweet_id:
+        type: integer
+      user_id:
+        type: integer
+      username:
+        type: string
     type: object
   user.SimpleResMessage:
     properties:
@@ -101,6 +139,8 @@ definitions:
         type: integer
       like_count:
         type: integer
+      reply_count:
+        type: integer
       tags:
         items:
           type: string
@@ -117,6 +157,8 @@ definitions:
       id:
         type: integer
       like_count:
+        type: integer
+      reply_count:
         type: integer
       tags:
         items:
@@ -331,6 +373,81 @@ paths:
       summary: Remove reaction
       tags:
       - Tweet Action
+  /tweets/{tweet_id}/replies:
+    get:
+      description: Returns replies (newest first). Keyset pagination via optional
+        cursor_id.
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: tweet_id
+        required: true
+        type: integer
+      - description: Max items (<=100, default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Fetch items with id < cursor_id
+        in: query
+        name: cursor_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tweetdtos.GetRepliesRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: List replies of a tweet
+      tags:
+      - Tweet Action
+  /tweets/{tweet_id}/reply:
+    post:
+      consumes:
+      - application/json
+      description: Creates a reply for the given tweet_id
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: tweet_id
+        required: true
+        type: integer
+      - description: reply payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/tweetdtos.CreateReplyReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tweetdtos.CreateReplyRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Reply to a tweet
+      tags:
+      - Tweet Action
   /tweets/create-new-tweet:
     post:
       description: Create new tweet, The `tags` field is optional
@@ -430,7 +547,7 @@ paths:
       summary: Get followings of a user
       tags:
       - User Connection
-  /users/get-by-user-name/{username}:
+  /users/get-by-user-name:
     get:
       description: Search users by their `username`
       parameters:
@@ -456,7 +573,7 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/apperror.AppError'
-      summary: get users by username
+      summary: get user by username
       tags:
       - User Search
   /users/get-profile:
@@ -476,7 +593,7 @@ paths:
       summary: user profile
       tags:
       - User Profile
-  /users/search-by-user-name/{username}:
+  /users/search-by-user-name:
     get:
       description: Search users by their username. The `limit` parameter is optional
         and defaults to 10 if not provided.

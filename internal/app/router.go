@@ -5,6 +5,7 @@ import (
 	"twitter_clone/internal/modules/auth"
 	"twitter_clone/internal/modules/tweet"
 	tweetaction "twitter_clone/internal/modules/tweet/action"
+	tweetreply "twitter_clone/internal/modules/tweet/reply"
 	"twitter_clone/internal/modules/user"
 	useraction "twitter_clone/internal/modules/user/action"
 	userconnection "twitter_clone/internal/modules/user/connection"
@@ -50,8 +51,10 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	tweetService := tweet.NewTweetService(tweetRepo)
 	tweetActionRepo := tweetaction.NewUserActionRepository(db)
 	tweetActionService := tweetaction.NewTweetActionService(tweetActionRepo)
+	tweetReplyRepo := tweetreply.NewReplyRepository(db)
+	tweetReplyService := tweetreply.NewReplyService(tweetReplyRepo)
 
-	tweetHandler := tweet.NewTweetHandler(tweetService, tweetActionService)
+	tweetHandler := tweet.NewTweetHandler(tweetService, tweetActionService, tweetReplyService)
 
 	// Routs
 	e.POST("/signup", authHandler.SignUp)
@@ -64,8 +67,8 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	// user
 	authGroup.PUT("users/update-profile", userHandler.UpdateProfile)
 	authGroup.GET("users/get-profile", userHandler.GetProfile)
-	authGroup.GET("users/search-by-user-name/username", userHandler.SearchUsersByUserName)
-	authGroup.GET("users/get-by-user-name/username", userHandler.GetUserByUsername)
+	authGroup.GET("users/search-by-user-name", userHandler.SearchUsersByUserName)
+	authGroup.GET("users/get-by-user-name", userHandler.GetUserByUsername)
 	authGroup.POST("users/follow", userHandler.Follow)
 	authGroup.POST("users/unfollow", userHandler.Unfollow)
 	authGroup.GET("users/followers", userHandler.GetFollowers)
@@ -76,6 +79,8 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup.POST("tweets/:tweet_id/like", tweetHandler.Like)
 	authGroup.POST("tweets/:tweet_id/dislike", tweetHandler.Dislike)
 	authGroup.DELETE("tweets/:tweet_id/reaction", tweetHandler.RemoveReaction)
+	authGroup.POST("tweets/:tweet_id/reply", tweetHandler.CreateReply)
+	authGroup.GET("tweets/:tweet_id/replies", tweetHandler.GetReplies)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

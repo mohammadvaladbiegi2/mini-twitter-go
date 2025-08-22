@@ -226,6 +226,118 @@ const docTemplate = `{
                 }
             }
         },
+        "/tweets/{tweet_id}/replies": {
+            "get": {
+                "description": "Returns replies (newest first). Keyset pagination via optional cursor_id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tweet Action"
+                ],
+                "summary": "List replies of a tweet",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tweet ID",
+                        "name": "tweet_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max items (\u003c=100, default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Fetch items with id \u003c cursor_id",
+                        "name": "cursor_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tweetdtos.GetRepliesRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/tweets/{tweet_id}/reply": {
+            "post": {
+                "description": "Creates a reply for the given tweet_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tweet Action"
+                ],
+                "summary": "Reply to a tweet",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tweet ID",
+                        "name": "tweet_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "reply payload",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tweetdtos.CreateReplyReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/tweetdtos.CreateReplyRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/follow": {
             "post": {
                 "produces": [
@@ -352,7 +464,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/get-by-user-name/{username}": {
+        "/users/get-by-user-name": {
             "get": {
                 "description": "Search users by their ` + "`" + `username` + "`" + `",
                 "produces": [
@@ -361,7 +473,7 @@ const docTemplate = `{
                 "tags": [
                     "User Search"
                 ],
-                "summary": "get users by username",
+                "summary": "get user by username",
                 "parameters": [
                     {
                         "type": "string",
@@ -422,7 +534,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/search-by-user-name/{username}": {
+        "/users/search-by-user-name": {
             "get": {
                 "description": "Search users by their username. The ` + "`" + `limit` + "`" + ` parameter is optional and defaults to 10 if not provided.",
                 "produces": [
@@ -626,6 +738,22 @@ const docTemplate = `{
                 }
             }
         },
+        "tweetdtos.CreateReplyReq": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
+        "tweetdtos.CreateReplyRes": {
+            "type": "object",
+            "properties": {
+                "reply": {
+                    "$ref": "#/definitions/tweetdtos.Reply"
+                }
+            }
+        },
         "tweetdtos.CreateTweetRes": {
             "type": "object",
             "properties": {
@@ -643,6 +771,49 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "tweetdtos.GetRepliesRes": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "next_cursor": {
+                    "type": "integer"
+                },
+                "replies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tweetdtos.Reply"
+                    }
+                }
+            }
+        },
+        "tweetdtos.Reply": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "tweet_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
@@ -712,6 +883,9 @@ const docTemplate = `{
                 "like_count": {
                     "type": "integer"
                 },
+                "reply_count": {
+                    "type": "integer"
+                },
                 "tags": {
                     "type": "array",
                     "items": {
@@ -736,6 +910,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "like_count": {
+                    "type": "integer"
+                },
+                "reply_count": {
                     "type": "integer"
                 },
                 "tags": {

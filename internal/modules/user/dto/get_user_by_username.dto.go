@@ -15,5 +15,6 @@ type Tweets struct {
 	Tags         []string `json:"tags"`
 	LikeCount    int64    `json:"like_count"`
 	DislikeCount int64    `json:"dislike_count"`
+	ReplyCount   int64    `json:"reply_count"`
 	CreatedAt    string   `json:"created_at"`
 }

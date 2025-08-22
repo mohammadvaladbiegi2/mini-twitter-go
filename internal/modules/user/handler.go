@@ -89,7 +89,7 @@ func (h *Handler) GetProfile(c echo.Context) error {
 // @Success      200 {array} userdtos.SearchUsersByUsernameRes
 // @Failure      400 {object} apperror.AppError "Validation failed"
 // @Failure      500 {object} apperror.AppError "Internal server error"
-// @Router       /users/search-by-user-name/{username}  [get]
+// @Router       /users/search-by-user-name  [get]
 func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 	var validationErrors []map[string]string
 	username := c.QueryParam("username")
@@ -128,7 +128,7 @@ func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 }
 
 // User godoc
-// @Summary      get users by username
+// @Summary      get user by username
 // @Description  Search users by their `username`
 // @Tags         User Search
 // @Produce      json
@@ -136,7 +136,7 @@ func (h *Handler) SearchUsersByUserName(c echo.Context) error {
 // @Success      200 {array} userdtos.GetUserByUsernameRes
 // @Failure      400 {object} apperror.AppError "Validation failed"
 // @Failure      500 {object} apperror.AppError "Internal server error"
-// @Router       /users/get-by-user-name/{username}  [get]
+// @Router       /users/get-by-user-name  [get]
 func (h *Handler) GetUserByUsername(c echo.Context) error {
 	var validationErrors []map[string]string
 	username := c.QueryParam("username")

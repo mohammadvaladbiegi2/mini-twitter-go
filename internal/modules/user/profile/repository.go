@@ -109,6 +109,7 @@ func (r *ProfileRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes
         t.content,
         t.like_count,
         t.dislike_count,
+		 t.reply_count,
         t.created_at,
         COALESCE(ARRAY_AGG(DISTINCT tg.name) FILTER (WHERE tg.name IS NOT NULL), '{}') AS tags
     FROM tweets t
@@ -130,7 +131,7 @@ func (r *ProfileRepository) GetProfile(userID int64) (userdtos.UserGetProfileRes
 		var createdAt time.Time
 		var tags []string
 
-		if err := rows.Scan(&tw.ID, &tw.Content, &tw.LikeCount, &tw.DislikeCount, &createdAt, &tags); err != nil {
+		if err := rows.Scan(&tw.ID, &tw.Content, &tw.LikeCount, &tw.DislikeCount, &tw.ReplyCount, &createdAt, &tags); err != nil {
 			return res, apperror.DB("failed to scan tweet", err)
 		}
 
