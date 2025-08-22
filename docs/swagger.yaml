@@ -45,6 +45,42 @@ definitions:
       message:
         type: string
     type: object
+  tweetdtos.BookmarkTweet:
+    properties:
+      author_avatar_url:
+        type: string
+      author_username:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      dislike_count:
+        type: integer
+      id:
+        type: integer
+      like_count:
+        type: integer
+      reply_count:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  tweetdtos.BookmarksListRes:
+    properties:
+      bookmarks:
+        items:
+          $ref: '#/definitions/tweetdtos.BookmarkTweet'
+        type: array
+      count:
+        type: integer
+      limit:
+        type: integer
+      next_cursor:
+        type: string
+    type: object
   tweetdtos.CreateReplyReq:
     properties:
       content:
@@ -129,6 +165,8 @@ definitions:
     type: object
   userdtos.TweetForProfile:
     properties:
+      bookmark_count:
+        type: integer
       content:
         type: string
       created_at:
@@ -148,6 +186,8 @@ definitions:
     type: object
   userdtos.Tweets:
     properties:
+      bookmark_count:
+        type: integer
       content:
         type: string
       created_at:
@@ -313,6 +353,21 @@ paths:
       summary: Sign up a new user
       tags:
       - Auth
+  /tweets/{tweet_id}/bookmark:
+    delete:
+      produces:
+      - application/json
+      responses: {}
+      summary: Unbookmark tweet
+      tags:
+      - Tweet Action
+    post:
+      produces:
+      - application/json
+      responses: {}
+      summary: Bookmark tweet
+      tags:
+      - Tweet Action
   /tweets/{tweet_id}/dislike:
     post:
       parameters:
@@ -448,6 +503,27 @@ paths:
       summary: Reply to a tweet
       tags:
       - Tweet Action
+  /tweets/bookmarks:
+    get:
+      parameters:
+      - description: max 50 (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: opaque cursor
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tweetdtos.BookmarksListRes'
+      summary: List my bookmarks (keyset pagination)
+      tags:
+      - User Infos
   /tweets/create-new-tweet:
     post:
       description: Create new tweet, The `tags` field is optional
@@ -516,7 +592,7 @@ paths:
             $ref: '#/definitions/apperror.AppError'
       summary: Get followers of a user
       tags:
-      - User Connection
+      - User Infos
   /users/followings:
     get:
       description: Returns a paginated list of followings for the authenticated user.
@@ -546,7 +622,7 @@ paths:
             $ref: '#/definitions/apperror.AppError'
       summary: Get followings of a user
       tags:
-      - User Connection
+      - User Infos
   /users/get-by-user-name:
     get:
       description: Search users by their `username`

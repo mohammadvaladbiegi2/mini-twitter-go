@@ -205,7 +205,7 @@ func (h *Handler) Unfollow(c echo.Context) error {
 // GetFollowers godoc
 // @Summary      Get followers of a user
 // @Description  Returns a paginated list of followers for the authenticated user.
-// @Tags         User Connection
+// @Tags         User Infos
 // @Produce      json
 // @Param        page query int false "Page number (default 1)"
 // @Param        page_size query int false "Number of items per page (max 50, default 10)"
@@ -265,7 +265,7 @@ func (h *Handler) GetFollowers(c echo.Context) error {
 // GetFollowings godoc
 // @Summary      Get followings of a user
 // @Description  Returns a paginated list of followings for the authenticated user.
-// @Tags         User Connection
+// @Tags         User Infos
 // @Produce      json
 // @Param        page query int false "Page number (default 1)"
 // @Param        page_size query int false "Number of items per page (max 50, default 10)"

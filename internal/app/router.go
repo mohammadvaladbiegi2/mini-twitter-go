@@ -5,6 +5,7 @@ import (
 	"twitter_clone/internal/modules/auth"
 	"twitter_clone/internal/modules/tweet"
 	tweetaction "twitter_clone/internal/modules/tweet/action"
+	tweetbookmark "twitter_clone/internal/modules/tweet/bookmark"
 	tweetreply "twitter_clone/internal/modules/tweet/reply"
 	"twitter_clone/internal/modules/user"
 	useraction "twitter_clone/internal/modules/user/action"
@@ -53,8 +54,10 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	tweetActionService := tweetaction.NewTweetActionService(tweetActionRepo)
 	tweetReplyRepo := tweetreply.NewReplyRepository(db)
 	tweetReplyService := tweetreply.NewReplyService(tweetReplyRepo)
+	tweetBookMarkRepo := tweetbookmark.NewBookMarkRepository(db)
+	tweetBookMarkService := tweetbookmark.NewBookMarkService(tweetBookMarkRepo)
 
-	tweetHandler := tweet.NewTweetHandler(tweetService, tweetActionService, tweetReplyService)
+	tweetHandler := tweet.NewTweetHandler(tweetService, tweetActionService, tweetReplyService, tweetBookMarkService)
 
 	// Routs
 	e.POST("/signup", authHandler.SignUp)
@@ -81,6 +84,9 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup.DELETE("tweets/:tweet_id/reaction", tweetHandler.RemoveReaction)
 	authGroup.POST("tweets/:tweet_id/reply", tweetHandler.CreateReply)
 	authGroup.GET("tweets/:tweet_id/replies", tweetHandler.GetReplies)
+	authGroup.POST("tweets/:tweet_id/bookmark", tweetHandler.Bookmark)
+	authGroup.DELETE("tweets/:tweet_id/bookmark", tweetHandler.Unbookmark)
+	authGroup.GET("tweets/bookmarks", tweetHandler.ListBookmarks)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

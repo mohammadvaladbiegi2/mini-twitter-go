@@ -11,11 +11,12 @@ type UserGetProfileRes struct {
 }
 
 type TweetForProfile struct {
-	ID           int64    `json:"id"`
-	Content      string   `json:"content"`
-	Tags         []string `json:"tags"`
-	LikeCount    int64    `json:"like_count"`
-	DislikeCount int64    `json:"dislike_count"`
-	ReplyCount   int64    `json:"reply_count"`
-	CreatedAt    string   `json:"created_at"`
+	ID            int64    `json:"id"`
+	Content       string   `json:"content"`
+	Tags          []string `json:"tags"`
+	LikeCount     int64    `json:"like_count"`
+	DislikeCount  int64    `json:"dislike_count"`
+	ReplyCount    int64    `json:"reply_count"`
+	BookMarkCount int64    `json:"bookmark_count"`
+	CreatedAt     string   `json:"created_at"`
 }

@@ -21,7 +21,6 @@ func NewReplyService(repo Repository) *ReplyService {
 }
 
 func (s *ReplyService) CreateReply(userID, tweetID int64, req tweetdtos.CreateReplyReq) (tweetdtos.CreateReplyRes, *apperror.AppError) {
-	// Validation ساده (تو قبلاً پکیج validation داری؛ اگر خواستی اونجا منتقلش کن)
 	content := strings.TrimSpace(req.Content)
 	if content == "" {
 		return tweetdtos.CreateReplyRes{}, apperror.Validation("Validation failed", []map[string]string{

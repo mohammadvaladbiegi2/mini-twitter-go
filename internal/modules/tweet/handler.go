@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	tweetaction "twitter_clone/internal/modules/tweet/action"
+	tweetbookmark "twitter_clone/internal/modules/tweet/bookmark"
 	tweetdtos "twitter_clone/internal/modules/tweet/dto"
 	tweetreply "twitter_clone/internal/modules/tweet/reply"
 	"twitter_clone/internal/pkg/apperror"
@@ -12,16 +13,18 @@ import (
 )
 
 type Handler struct {
-	service       Service
-	actionService tweetaction.Service
-	replyService  tweetreply.Service
+	service         Service
+	actionService   tweetaction.Service
+	replyService    tweetreply.Service
+	bookmarkService tweetbookmark.Service
 }
 
-func NewTweetHandler(service Service, actionService tweetaction.Service, replyService tweetreply.Service) *Handler {
+func NewTweetHandler(service Service, actionService tweetaction.Service, replyService tweetreply.Service, bookmarkService tweetbookmark.Service) *Handler {
 	return &Handler{
-		service:       service,
-		actionService: actionService,
-		replyService:  replyService,
+		service:         service,
+		actionService:   actionService,
+		replyService:    replyService,
+		bookmarkService: bookmarkService,
 	}
 }
 
@@ -167,6 +170,72 @@ func (h *Handler) GetReplies(c echo.Context) error {
 	}
 
 	res, appErr := h.replyService.GetReplies(tweetID, limit, cursorID)
+	if appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+	return c.JSON(http.StatusOK, res)
+}
+
+// POST /tweets/:tweet_id/bookmark
+// @Summary  Bookmark tweet
+// @Tags     Tweet Action
+// @Produce  json
+// @Router   /tweets/{tweet_id}/bookmark [post]
+func (h *Handler) Bookmark(c echo.Context) error {
+	userID := c.Get("userID").(int64)
+
+	tid, err := strconv.ParseInt(c.Param("tweet_id"), 10, 64)
+	if err != nil || tid <= 0 {
+		return c.JSON(http.StatusBadRequest, apperror.Validation("invalid tweet_id", nil, err))
+	}
+
+	if appErr := h.bookmarkService.Add(userID, tid); appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+
+	return c.JSON(http.StatusCreated, map[string]string{"message": "bookmarked"})
+}
+
+// DELETE /tweets/:tweet_id/bookmark
+// @Summary  Unbookmark tweet
+// @Tags     Tweet Action
+// @Produce  json
+// @Router   /tweets/{tweet_id}/bookmark [delete]
+func (h *Handler) Unbookmark(c echo.Context) error {
+	userID := c.Get("userID").(int64)
+
+	tid, err := strconv.ParseInt(c.Param("tweet_id"), 10, 64)
+	if err != nil || tid <= 0 {
+		return c.JSON(http.StatusBadRequest, apperror.Validation("invalid tweet_id", nil, err))
+	}
+
+	if appErr := h.bookmarkService.Remove(userID, tid); appErr != nil {
+		return c.JSON(appErr.StatusCode, appErr)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "unbookmarked"})
+}
+
+// GET /tweets/bookmarks?limit=&cursor=...
+// @Summary  List my bookmarks (keyset pagination)
+// @Tags     User Infos
+// @Produce  json
+// @Param    limit  query int    false "max 50 (default 20)"
+// @Param    cursor query string false "opaque cursor"
+// @Success  200    {object} tweetdtos.BookmarksListRes
+// @Router   /tweets/bookmarks [get]
+func (h *Handler) ListBookmarks(c echo.Context) error {
+	userID := c.Get("userID").(int64)
+
+	limit := 20
+	if v := c.QueryParam("limit"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 && n <= 50 {
+			limit = n
+		}
+	}
+	cursor := c.QueryParam("cursor")
+
+	res, appErr := h.bookmarkService.List(userID, limit, cursor)
 	if appErr != nil {
 		return c.JSON(appErr.StatusCode, appErr)
 	}

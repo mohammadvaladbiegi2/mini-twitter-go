@@ -107,6 +107,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/tweets/bookmarks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Infos"
+                ],
+                "summary": "List my bookmarks (keyset pagination)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "max 50 (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "opaque cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tweetdtos.BookmarksListRes"
+                        }
+                    }
+                }
+            }
+        },
         "/tweets/create-new-tweet": {
             "post": {
                 "description": "Create new tweet, The ` + "`" + `tags` + "`" + ` field is optional",
@@ -131,6 +164,28 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/tweets/{tweet_id}/bookmark": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tweet Action"
+                ],
+                "summary": "Bookmark tweet",
+                "responses": {}
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tweet Action"
+                ],
+                "summary": "Unbookmark tweet",
+                "responses": {}
             }
         },
         "/tweets/{tweet_id}/dislike": {
@@ -379,7 +434,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User Connection"
+                    "User Infos"
                 ],
                 "summary": "Get followers of a user",
                 "parameters": [
@@ -425,7 +480,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User Connection"
+                    "User Infos"
                 ],
                 "summary": "Get followings of a user",
                 "parameters": [
@@ -738,6 +793,61 @@ const docTemplate = `{
                 }
             }
         },
+        "tweetdtos.BookmarkTweet": {
+            "type": "object",
+            "properties": {
+                "author_avatar_url": {
+                    "type": "string"
+                },
+                "author_username": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dislike_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "like_count": {
+                    "type": "integer"
+                },
+                "reply_count": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "tweetdtos.BookmarksListRes": {
+            "type": "object",
+            "properties": {
+                "bookmarks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tweetdtos.BookmarkTweet"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "next_cursor": {
+                    "type": "string"
+                }
+            }
+        },
         "tweetdtos.CreateReplyReq": {
             "type": "object",
             "properties": {
@@ -868,6 +978,9 @@ const docTemplate = `{
         "userdtos.TweetForProfile": {
             "type": "object",
             "properties": {
+                "bookmark_count": {
+                    "type": "integer"
+                },
                 "content": {
                     "type": "string"
                 },
@@ -897,6 +1010,9 @@ const docTemplate = `{
         "userdtos.Tweets": {
             "type": "object",
             "properties": {
+                "bookmark_count": {
+                    "type": "integer"
+                },
                 "content": {
                     "type": "string"
                 },
