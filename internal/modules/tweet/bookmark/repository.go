@@ -42,7 +42,7 @@ func (r *BookmarkRepository) AddBookmark(userID, tweetID int64) *apperror.AppErr
 		_ = tx.Rollback(ctx)
 	}()
 
-	// وجود توییت (برای خطای بهتر نسبت به FK)
+	// check for exist tweeter ?
 	const checkTweet = `SELECT 1 FROM tweets WHERE id=$1`
 	var d int
 	if err := tx.QueryRow(ctx, checkTweet, tweetID).Scan(&d); err != nil {
@@ -52,7 +52,6 @@ func (r *BookmarkRepository) AddBookmark(userID, tweetID int64) *apperror.AppErr
 		return apperror.DB("bookmark.check_tweet", err)
 	}
 
-	// درج idempotent
 	const ins = `
 		INSERT INTO tweet_bookmarks (user_id, tweet_id)
 		VALUES ($1,$2)
@@ -63,7 +62,7 @@ func (r *BookmarkRepository) AddBookmark(userID, tweetID int64) *apperror.AppErr
 		return apperror.DB("bookmark.insert", err)
 	}
 
-	// اگر درج شد، شمارنده را زیاد کن (اگه ستون را اضافه کرده‌ای)
+	// incerment book mark count in tweet
 	if tag.RowsAffected() > 0 {
 		if _, err := tx.Exec(ctx, `UPDATE tweets SET bookmark_count=bookmark_count+1 WHERE id=$1`, tweetID); err != nil {
 			return apperror.DB("bookmark.bump_count", err)
@@ -97,7 +96,6 @@ func (r *BookmarkRepository) RemoveBookmark(userID, tweetID int64) *apperror.App
 		return apperror.NotFound("bookmark not found", nil)
 	}
 
-	// شمارنده را کم کن (اگه ستون را اضافه کرده‌ای)
 	if _, err := tx.Exec(ctx, `UPDATE tweets SET bookmark_count=GREATEST(bookmark_count-1,0) WHERE id=$1`, tweetID); err != nil {
 		return apperror.DB("unbookmark.dec_count", err)
 	}
@@ -124,11 +122,12 @@ SELECT
   t.like_count,
   t.dislike_count,
   t.reply_count,
+  t.bookmark_count,
   t.created_at,
   u.username,
   u.avatar_url,
   COALESCE(ARRAY_AGG(DISTINCT tg.name) FILTER (WHERE tg.name IS NOT NULL), '{}') AS tags,
-  b.created_at AS b_created_at -- برای cursor
+  b.created_at AS b_created_at
 FROM tweet_bookmarks b
 JOIN tweets t ON t.id = b.tweet_id
 JOIN users u  ON u.id = t.user_id
@@ -141,7 +140,6 @@ WHERE b.user_id = $1
 	var err error
 
 	if afterCreatedAt != nil && afterTweetID != nil {
-		// صفحه‌های بعدی
 		const q = base + `
   AND (b.created_at, b.tweet_id) < ($2, $3)
 GROUP BY t.id, u.username, u.avatar_url, b_created_at
@@ -150,7 +148,6 @@ LIMIT $4;
 `
 		rows, err = r.db.Query(ctx, q, userID, *afterCreatedAt, *afterTweetID, limit)
 	} else {
-		// صفحه اول
 		const q = base + `
 GROUP BY t.id, u.username, u.avatar_url, b_created_at
 ORDER BY b_created_at DESC, t.id DESC
@@ -179,6 +176,7 @@ LIMIT $2;
 			&it.LikeCount,
 			&it.DislikeCount,
 			&it.ReplyCount,
+			&it.BookMarkCount,
 			&tCreatedAt,
 			&it.AuthorUsername,
 			&it.AuthorAvatar,
@@ -192,7 +190,6 @@ LIMIT $2;
 		it.Tags = tags
 		list = append(list, it)
 
-		// برای next-cursor
 		lastCreatedAt = &bCreatedAt
 		lastID := it.ID
 		lastTweetID = &lastID
@@ -201,7 +198,6 @@ LIMIT $2;
 	return list, lastCreatedAt, lastTweetID, nil
 }
 
-/* --- Helpers برای cursor (در سرویس استفاده می‌کنیم) --- */
 func EncodeCursor(ts time.Time, id int64) string {
 	raw := fmt.Sprintf("%d|%d", ts.UnixNano(), id)
 	return base64.StdEncoding.EncodeToString([]byte(raw))
