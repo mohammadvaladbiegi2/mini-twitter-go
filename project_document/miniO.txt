@@ -1,0 +1,9 @@
+after add env and run countainer go to miniO console in docker desktop and run this command
+
+mc alias set mylocal http://localhost:9000 admin supersecret
+
+mc anonymous set download mylocal/twitter-clone
+
+# for check
+
+mc anonymous get mylocal/twitter-clone

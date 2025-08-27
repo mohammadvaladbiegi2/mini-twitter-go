@@ -382,6 +382,62 @@
                 }
             }
         },
+        "/uploads": {
+            "post": {
+                "description": "Upload a file (image/audio/etc.). If the same file (by SHA256 hash) was uploaded before,\nthe existing file metadata \u0026 URL will be returned (no duplicate storage).",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Upload"
+                ],
+                "summary": "Upload a file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "File to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Uploader user id (optional — recommended to use JWT token)",
+                        "name": "user_id",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Upload succeeded or existing file returned",
+                        "schema": {
+                            "$ref": "#/definitions/uploaddto.UploadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error (missing file or invalid user_id)",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized (if JWT middleware denies)",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Server / Database / Storage error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/follow": {
             "post": {
                 "produces": [
@@ -791,6 +847,9 @@
                 "author_username": {
                     "type": "string"
                 },
+                "book_mark_count": {
+                    "type": "integer"
+                },
                 "content": {
                     "type": "string"
                 },
@@ -912,6 +971,29 @@
                     "type": "integer"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "uploaddto.UploadResponse": {
+            "type": "object",
+            "properties": {
+                "file_name": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mime_type": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "url": {
                     "type": "string"
                 }
             }

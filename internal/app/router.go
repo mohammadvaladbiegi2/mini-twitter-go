@@ -7,11 +7,13 @@ import (
 	tweetaction "twitter_clone/internal/modules/tweet/action"
 	tweetbookmark "twitter_clone/internal/modules/tweet/bookmark"
 	tweetreply "twitter_clone/internal/modules/tweet/reply"
+	"twitter_clone/internal/modules/upload"
 	"twitter_clone/internal/modules/user"
 	useraction "twitter_clone/internal/modules/user/action"
 	userconnection "twitter_clone/internal/modules/user/connection"
 	userprofile "twitter_clone/internal/modules/user/profile"
 	usersearch "twitter_clone/internal/modules/user/search"
+	"twitter_clone/internal/pkg/apperror"
 
 	"github.com/labstack/echo/v4/middleware"
 
@@ -59,6 +61,22 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 
 	tweetHandler := tweet.NewTweetHandler(tweetService, tweetActionService, tweetReplyService, tweetBookMarkService)
 
+	minioStorage, err := upload.NewMinioStorageFromEnv()
+	if err != nil {
+		apperror.Server("cant init the minio storage", err)
+	}
+
+	// create repo
+	uploadRepo := upload.NewUploadRepository(db)
+
+	// create service
+	uploadService := upload.NewUploadService(uploadRepo, minioStorage)
+
+	// create handler
+	uploadHandler := upload.NewHandler(uploadService)
+
+	// register route (protected)
+
 	// Routs
 	e.POST("/signup", authHandler.SignUp)
 	e.POST("/login", authHandler.Login)
@@ -88,6 +106,8 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup.DELETE("tweets/:tweet_id/bookmark", tweetHandler.Unbookmark)
 	authGroup.GET("tweets/bookmarks", tweetHandler.ListBookmarks)
 
+	// upload
+	authGroup.POST("/uploads", uploadHandler.Upload)
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 }
