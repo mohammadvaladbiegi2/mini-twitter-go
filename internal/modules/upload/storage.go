@@ -15,19 +15,19 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-// Storage interface
 type Storage interface {
 	Save(ctx context.Context, objectName string, data []byte, contentType string) (string, *apperror.AppError)
 	PublicURL(objectName string) string
 	PresignedURL(objectName string, expiry time.Duration) (string, *apperror.AppError)
+	Delete(objectName string) *apperror.AppError
 }
 
 type MinioStorage struct {
 	client       *minio.Client
 	bucketName   string
-	endpoint     string // with host:port (no scheme)
+	endpoint     string
 	secure       bool
-	usePresigned bool // flag to determine if we should use presigned URLs
+	usePresigned bool
 }
 
 func NewMinioStorageFromEnv() (*MinioStorage, *apperror.AppError) {
@@ -36,7 +36,7 @@ func NewMinioStorageFromEnv() (*MinioStorage, *apperror.AppError) {
 	secretKey := os.Getenv("MINIO_SECRET_KEY")
 	bucket := os.Getenv("MINIO_BUCKET")
 	secureStr := os.Getenv("MINIO_SECURE")
-	usePresignedStr := os.Getenv("MINIO_USE_PRESIGNED") // اضافه شده
+	usePresignedStr := os.Getenv("MINIO_USE_PRESIGNED")
 
 	if endpoint == "" || bucket == "" {
 		return nil, apperror.Server("MINIO_ENDPOINT and MINIO_BUCKET env vars required", nil)
@@ -61,8 +61,6 @@ func NewMinioStorageFromEnv() (*MinioStorage, *apperror.AppError) {
 		usePresigned = p
 	}
 
-	fmt.Printf("DEBUG: usePresigned = %v\n", usePresigned) // برای دیباگ
-
 	client, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
 		Secure: secure,
@@ -83,7 +81,6 @@ func NewMinioStorageFromEnv() (*MinioStorage, *apperror.AppError) {
 			return nil, apperror.Server("failed to create bucket", err)
 		}
 
-		// تنظیم bucket policy برای دسترسی عمومی خواندن
 		policy := fmt.Sprintf(`{
 			"Version": "2012-10-17",
 			"Statement": [
@@ -98,7 +95,6 @@ func NewMinioStorageFromEnv() (*MinioStorage, *apperror.AppError) {
 
 		if err := client.SetBucketPolicy(ctx, bucket, policy); err != nil {
 			fmt.Printf("Warning: failed to set bucket policy: %v\n", err)
-			// ادامه می‌دهیم حتی اگر policy تنظیم نشد
 		}
 	}
 
@@ -122,23 +118,16 @@ func (s *MinioStorage) Save(ctx context.Context, objectName string, data []byte,
 		return "", apperror.Server("failed to upload file to storage", err)
 	}
 
-	fmt.Printf("DEBUG: usePresigned in Save = %v\n", s.usePresigned) // برای دیباگ
-
-	// اگر از presigned URLs استفاده می‌کنیم، یک URL موقت تولید کنیم
 	if s.usePresigned {
-		fmt.Println("DEBUG: Generating presigned URL...")                // برای دیباگ
-		presignedURL, appErr := s.PresignedURL(objectName, 24*time.Hour) // 24 ساعت اعتبار
+		fmt.Println("DEBUG: Generating presigned URL...")
+		presignedURL, appErr := s.PresignedURL(objectName, 24*time.Hour)
 		if appErr != nil {
-			fmt.Printf("DEBUG: Error generating presigned URL: %v\n", appErr) // برای دیباگ
 			return "", appErr
 		}
-		fmt.Printf("DEBUG: Generated presigned URL: %s\n", presignedURL) // برای دیباگ
 		return presignedURL, nil
 	}
 
-	fmt.Println("DEBUG: Using public URL...") // برای دیباگ
 	publicURL := s.PublicURL(objectName)
-	fmt.Printf("DEBUG: Generated public URL: %s\n", publicURL) // برای دیباگ
 	return publicURL, nil
 }
 
@@ -161,4 +150,15 @@ func (s *MinioStorage) PresignedURL(objectName string, expiry time.Duration) (st
 	}
 
 	return presignedURL.String(), nil
+}
+
+func (s *MinioStorage) Delete(objectName string) *apperror.AppError {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := s.client.RemoveObject(ctx, s.bucketName, objectName, minio.RemoveObjectOptions{})
+	if err != nil {
+		return apperror.Server("failed to delete object", err)
+	}
+	return nil
 }

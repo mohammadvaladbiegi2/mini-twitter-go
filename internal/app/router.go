@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	internalMiddleware "twitter_clone/internal/middleware"
 	"twitter_clone/internal/modules/auth"
 	"twitter_clone/internal/modules/tweet"
@@ -8,6 +9,8 @@ import (
 	tweetbookmark "twitter_clone/internal/modules/tweet/bookmark"
 	tweetreply "twitter_clone/internal/modules/tweet/reply"
 	"twitter_clone/internal/modules/upload"
+	"twitter_clone/internal/modules/upload/avatar"
+	uploadavataruser "twitter_clone/internal/modules/upload/user"
 	"twitter_clone/internal/modules/user"
 	useraction "twitter_clone/internal/modules/user/action"
 	userconnection "twitter_clone/internal/modules/user/connection"
@@ -61,29 +64,33 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 
 	tweetHandler := tweet.NewTweetHandler(tweetService, tweetActionService, tweetReplyService, tweetBookMarkService)
 
+	// init storage
 	minioStorage, err := upload.NewMinioStorageFromEnv()
 	if err != nil {
-		apperror.Server("cant init the minio storage", err)
+		log.Fatal(apperror.Server("cant init the minio storage", err))
 	}
 
-	// create repo
+	// repos
 	uploadRepo := upload.NewUploadRepository(db)
+	userRepo := uploadavataruser.NewUserRepository(db)
 
-	// create service
-	uploadService := upload.NewUploadService(uploadRepo, minioStorage)
+	// services
+	uploadSvc := upload.NewUploadService(uploadRepo, minioStorage)
+	avatarSvc := avatar.NewService(uploadSvc, userRepo, uploadRepo, minioStorage)
 
-	// create handler
-	uploadHandler := upload.NewHandler(uploadService)
+	// handlers
+	avatarHandler := avatar.NewHandler(avatarSvc)
 
 	// register route (protected)
+	authGroup := e.Group("")
+	authGroup.Use(internalMiddleware.JWTauthentication)
 
-	// Routs
+	// Routs Auth
 	e.POST("/signup", authHandler.SignUp)
 	e.POST("/login", authHandler.Login)
 
-	// route need protection and token
-	authGroup := e.Group("")
-	authGroup.Use(internalMiddleware.JWTauthentication)
+	// upload
+	authGroup.POST("/users/me/avatar", avatarHandler.UploadAvatar)
 
 	// user
 	authGroup.PUT("users/update-profile", userHandler.UpdateProfile)
@@ -106,8 +113,6 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup.DELETE("tweets/:tweet_id/bookmark", tweetHandler.Unbookmark)
 	authGroup.GET("tweets/bookmarks", tweetHandler.ListBookmarks)
 
-	// upload
-	authGroup.POST("/uploads", uploadHandler.Upload)
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 }

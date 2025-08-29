@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	uploaddto "twitter_clone/internal/modules/upload/dto"
 	"twitter_clone/internal/pkg/apperror"
 
 	"github.com/jackc/pgx/v5"
@@ -13,6 +14,8 @@ import (
 type Repository interface {
 	FindByHash(hash string) (id int64, fileName, mime string, size int64, appErr *apperror.AppError)
 	SaveMetadata(userID int64, fileName, hash, mime string, size int64) (int64, *apperror.AppError)
+	FindByID(id int64) (*uploaddto.UploadResponse, error)
+	DeleteByID(id int64) error
 }
 
 type UploadRepository struct {
@@ -46,8 +49,6 @@ func (r *UploadRepository) SaveMetadata(userID int64, fileName, hash, mime strin
 	defer cancel()
 
 	var id int64
-	// در این کوئری: اگر hash از قبل وجود داشته باشد، update ای بدون تغییر انجام می‌دهیم و id را برمی‌گردانیم.
-	// این الگو race-safe است و نیازی به چک‌کردن صریح خطای 23505 نیست.
 	q := `
 		INSERT INTO uploads (user_id, file_name, hash, mime_type, size, created_at)
 		VALUES ($1,$2,$3,$4,$5,NOW())
@@ -59,4 +60,29 @@ func (r *UploadRepository) SaveMetadata(userID int64, fileName, hash, mime strin
 		return 0, apperror.DB("failed to insert upload metadata", err)
 	}
 	return id, nil
+}
+
+func (r *UploadRepository) FindByID(id int64) (*uploaddto.UploadResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	row := r.db.QueryRow(ctx, `
+		SELECT id, user_id, file_name, hash, mime_type, size, created_at
+		FROM uploads WHERE id=$1
+	`, id)
+
+	var res uploaddto.UploadResponse
+	err := row.Scan(&res.ID, &res.UserID, &res.FileName, &res.Hash, &res.MimeType, &res.Size, &res.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (r *UploadRepository) DeleteByID(id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := r.db.Exec(ctx, `DELETE FROM uploads WHERE id=$1`, id)
+	return err
 }

@@ -136,6 +136,8 @@ definitions:
     type: object
   uploaddto.UploadResponse:
     properties:
+      created_at:
+        type: string
       file_name:
         type: string
       hash:
@@ -148,6 +150,8 @@ definitions:
         type: integer
       url:
         type: string
+      user_id:
+        type: integer
     type: object
   user.SimpleResMessage:
     properties:
@@ -558,45 +562,6 @@ paths:
       summary: new Tweet
       tags:
       - Tweet
-  /uploads:
-    post:
-      consumes:
-      - multipart/form-data
-      description: |-
-        Upload a file (image/audio/etc.). If the same file (by SHA256 hash) was uploaded before,
-        the existing file metadata & URL will be returned (no duplicate storage).
-      parameters:
-      - description: File to upload
-        in: formData
-        name: file
-        required: true
-        type: file
-      - description: Uploader user id (optional — recommended to use JWT token)
-        in: formData
-        name: user_id
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Upload succeeded or existing file returned
-          schema:
-            $ref: '#/definitions/uploaddto.UploadResponse'
-        "400":
-          description: Validation error (missing file or invalid user_id)
-          schema:
-            $ref: '#/definitions/apperror.AppError'
-        "401":
-          description: Unauthorized (if JWT middleware denies)
-          schema:
-            $ref: '#/definitions/apperror.AppError'
-        "500":
-          description: Server / Database / Storage error
-          schema:
-            $ref: '#/definitions/apperror.AppError'
-      summary: Upload a file
-      tags:
-      - Upload
   /users/follow:
     post:
       parameters:
@@ -725,6 +690,33 @@ paths:
       summary: user profile
       tags:
       - User Profile
+  /users/me/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      description: |-
+        Upload a image . If the same file (by SHA256 hash) was uploaded before,
+        the existing file metadata & URL will be returned (no duplicate storage).
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Upload succeeded or existing file returned
+          schema:
+            $ref: '#/definitions/uploaddto.UploadResponse'
+        "400":
+          description: Validation error (missing file or invalid user_id)
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Upload a user avatar
+      tags:
+      - Upload
   /users/search-by-user-name:
     get:
       description: Search users by their username. The `limit` parameter is optional

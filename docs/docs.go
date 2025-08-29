@@ -393,62 +393,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/uploads": {
-            "post": {
-                "description": "Upload a file (image/audio/etc.). If the same file (by SHA256 hash) was uploaded before,\nthe existing file metadata \u0026 URL will be returned (no duplicate storage).",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Upload"
-                ],
-                "summary": "Upload a file",
-                "parameters": [
-                    {
-                        "type": "file",
-                        "description": "File to upload",
-                        "name": "file",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Uploader user id (optional — recommended to use JWT token)",
-                        "name": "user_id",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Upload succeeded or existing file returned",
-                        "schema": {
-                            "$ref": "#/definitions/uploaddto.UploadResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Validation error (missing file or invalid user_id)",
-                        "schema": {
-                            "$ref": "#/definitions/apperror.AppError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized (if JWT middleware denies)",
-                        "schema": {
-                            "$ref": "#/definitions/apperror.AppError"
-                        }
-                    },
-                    "500": {
-                        "description": "Server / Database / Storage error",
-                        "schema": {
-                            "$ref": "#/definitions/apperror.AppError"
-                        }
-                    }
-                }
-            }
-        },
         "/users/follow": {
             "post": {
                 "produces": [
@@ -638,6 +582,44 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/avatar": {
+            "post": {
+                "description": "Upload a image . If the same file (by SHA256 hash) was uploaded before,\nthe existing file metadata \u0026 URL will be returned (no duplicate storage).",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Upload"
+                ],
+                "summary": "Upload a user avatar",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "File to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Upload succeeded or existing file returned",
+                        "schema": {
+                            "$ref": "#/definitions/uploaddto.UploadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error (missing file or invalid user_id)",
                         "schema": {
                             "$ref": "#/definitions/apperror.AppError"
                         }
@@ -989,6 +971,9 @@ const docTemplate = `{
         "uploaddto.UploadResponse": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string"
+                },
                 "file_name": {
                     "type": "string"
                 },
@@ -1006,6 +991,9 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
