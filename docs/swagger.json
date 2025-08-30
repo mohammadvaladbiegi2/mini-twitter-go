@@ -895,6 +895,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "like_count": {
                     "type": "integer"
                 },
@@ -953,6 +956,9 @@
                 },
                 "id": {
                     "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
                 },
                 "tags": {
                     "type": "array",

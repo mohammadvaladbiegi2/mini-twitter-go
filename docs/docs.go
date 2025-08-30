@@ -906,6 +906,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "like_count": {
                     "type": "integer"
                 },
@@ -964,6 +967,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
                 },
                 "tags": {
                     "type": "array",

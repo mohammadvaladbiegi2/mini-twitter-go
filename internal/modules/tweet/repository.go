@@ -110,9 +110,10 @@ func (r *TweetRepository) CreateTweet(UserID int64, req tweetdtos.CreateTweetReq
 	}
 
 	return tweetdtos.CreateTweetRes{
-		ID:      tweetID,
-		UserID:  UserID,
-		Content: req.Content,
-		Tags:    tagsOut,
+		ID:       tweetID,
+		UserID:   UserID,
+		Content:  req.Content,
+		ImageURL: nil,
+		Tags:     tagsOut,
 	}, nil
 }

@@ -61,6 +61,8 @@ definitions:
         type: integer
       id:
         type: integer
+      image_url:
+        type: string
       like_count:
         type: integer
       reply_count:
@@ -99,6 +101,8 @@ definitions:
         type: string
       id:
         type: integer
+      image_url:
+        type: string
       tags:
         items:
           type: string

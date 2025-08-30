@@ -9,6 +9,7 @@ import (
 
 type Repository interface {
 	UpdateTweetImage(tweetID, uploadID int64, imageURL string) error
+	IsOwner(tweetID, userID int64) (bool, error)
 }
 
 type Service struct {
@@ -28,6 +29,16 @@ func NewService(uSvc upload.Service, tRepo Repository, upRepo upload.Repository,
 }
 
 func (s *Service) UploadTweetImage(userID, tweetID int64, fh *multipart.FileHeader) (*uploaddto.UploadResponse, *apperror.AppError) {
+
+	// check the tweet is for this user
+	isOwner, err := s.tweetRepo.IsOwner(tweetID, userID)
+	if err != nil {
+		return nil, apperror.DB("failed to verify tweet ownership", err)
+	}
+	if !isOwner {
+		return nil, apperror.Forbidden("you are not allowed to upload image for this tweet", nil)
+	}
+
 	uploadRes, appErr := s.uploadSvc.UploadFile(userID, fh)
 	if appErr != nil {
 		return nil, appErr
