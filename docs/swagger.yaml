@@ -153,6 +153,13 @@ definitions:
       user_id:
         type: integer
     type: object
+  uploaddto.UploadTweetImageRes:
+    properties:
+      image_url:
+        type: string
+      upload_id:
+        type: integer
+    type: object
   user.SimpleResMessage:
     properties:
       message:
@@ -196,6 +203,8 @@ definitions:
         type: integer
       id:
         type: integer
+      image_url:
+        type: string
       like_count:
         type: integer
       reply_count:
@@ -217,6 +226,8 @@ definitions:
         type: integer
       id:
         type: integer
+      image_url:
+        type: string
       like_count:
         type: integer
       reply_count:
@@ -524,6 +535,40 @@ paths:
       summary: Reply to a tweet
       tags:
       - Tweet Action
+  /tweets/{tweet_id}/upload-image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads an image and associates it with the given tweet
+      parameters:
+      - description: ID of the tweet
+        in: path
+        name: tweet_id
+        required: true
+        type: integer
+      - description: Image file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/uploaddto.UploadTweetImageRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Upload an image for a tweet
+      tags:
+      - Upload
   /tweets/bookmarks:
     get:
       parameters:

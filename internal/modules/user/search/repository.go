@@ -3,6 +3,7 @@ package usersearch
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	userdtos "twitter_clone/internal/modules/user/dto"
@@ -14,7 +15,7 @@ import (
 
 type Repository interface {
 	SearchUsersByUsername(prefix string, limit int) ([]userdtos.SearchUsersByUsernameRes, *apperror.AppError)
-	GetUserByUsername(userName string, userID int64) (userdtos.GetUserByUsernameRes, *apperror.AppError)
+	GetUserByUsername(userName string) (userdtos.GetUserByUsernameRes, *apperror.AppError)
 }
 
 type SearchRepository struct {
@@ -62,17 +63,19 @@ func (r *SearchRepository) SearchUsersByUsername(prefix string, limit int) ([]us
 	return users, nil
 }
 
-func (r *SearchRepository) GetUserByUsername(userName string, userID int64) (userdtos.GetUserByUsernameRes, *apperror.AppError) {
+func (r *SearchRepository) GetUserByUsername(userName string) (userdtos.GetUserByUsernameRes, *apperror.AppError) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	var userID int64
 	queryUser := `
-		SELECT username, bio, avatar_url, follower_count, following_count
+		SELECT id, username, bio, avatar_url, follower_count, following_count
 		FROM users
 		WHERE username = $1
 	`
 	var res userdtos.GetUserByUsernameRes
 	err := r.db.QueryRow(ctx, queryUser, userName).Scan(
+		&userID,
 		&res.Username,
 		&res.Bio,
 		&res.AvatarURL,
@@ -94,6 +97,7 @@ func (r *SearchRepository) GetUserByUsername(userName string, userID int64) (use
         t.dislike_count,
         t.reply_count,
         t.bookmark_count,
+        t.image_url,
         t.created_at,
         COALESCE(ARRAY_AGG(DISTINCT tg.name) FILTER (WHERE tg.name IS NOT NULL), '{}') AS tags
     FROM tweets t
@@ -103,7 +107,6 @@ func (r *SearchRepository) GetUserByUsername(userName string, userID int64) (use
     GROUP BY t.id
     ORDER BY t.created_at DESC;
 	`
-
 	rows, err := r.db.Query(ctx, queryTweets, userID)
 	if err != nil {
 		return res, apperror.DB("failed to get user tweets", err)
@@ -115,7 +118,7 @@ func (r *SearchRepository) GetUserByUsername(userName string, userID int64) (use
 		var createdAt time.Time
 		var tags []string
 
-		if err := rows.Scan(&tw.ID, &tw.Content, &tw.LikeCount, &tw.DislikeCount, &tw.ReplyCount, &tw.BookMarkCount, &createdAt, &tags); err != nil {
+		if err := rows.Scan(&tw.ID, &tw.Content, &tw.LikeCount, &tw.DislikeCount, &tw.ReplyCount, &tw.BookMarkCount, &tw.ImageURL, &createdAt, &tags); err != nil {
 			return res, apperror.DB("failed to scan tweet", err)
 		}
 
@@ -124,6 +127,7 @@ func (r *SearchRepository) GetUserByUsername(userName string, userID int64) (use
 
 		res.Tweets = append(res.Tweets, tw)
 	}
+	fmt.Println(res)
 
 	return res, nil
 }

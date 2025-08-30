@@ -17,5 +17,6 @@ type Tweets struct {
 	DislikeCount  int64    `json:"dislike_count"`
 	ReplyCount    int64    `json:"reply_count"`
 	BookMarkCount int64    `json:"bookmark_count"`
+	ImageURL      *string  `json:"image_url"`
 	CreatedAt     string   `json:"created_at"`
 }

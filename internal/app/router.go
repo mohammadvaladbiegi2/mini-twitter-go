@@ -10,6 +10,7 @@ import (
 	tweetreply "twitter_clone/internal/modules/tweet/reply"
 	"twitter_clone/internal/modules/upload"
 	"twitter_clone/internal/modules/upload/avatar"
+	"twitter_clone/internal/modules/upload/tweetmedia"
 	uploadavataruser "twitter_clone/internal/modules/upload/user"
 	"twitter_clone/internal/modules/user"
 	useraction "twitter_clone/internal/modules/user/action"
@@ -73,13 +74,16 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	// repos
 	uploadRepo := upload.NewUploadRepository(db)
 	userRepo := uploadavataruser.NewUserRepository(db)
+	tweetImageRepo := tweetmedia.NewTweetRepository(db)
 
 	// services
 	uploadSvc := upload.NewUploadService(uploadRepo, minioStorage)
 	avatarSvc := avatar.NewService(uploadSvc, userRepo, uploadRepo, minioStorage)
+	tweetImageService := tweetmedia.NewService(uploadSvc, tweetImageRepo, uploadRepo, minioStorage)
 
 	// handlers
 	avatarHandler := avatar.NewHandler(avatarSvc)
+	tweetImageHandler := tweetmedia.NewHandler(tweetImageService)
 
 	// register route (protected)
 	authGroup := e.Group("")
@@ -91,6 +95,7 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 
 	// upload
 	authGroup.POST("/users/me/avatar", avatarHandler.UploadAvatar)
+	authGroup.POST("/tweets/:tweet_id/upload-image", tweetImageHandler.UploadTweetImage)
 
 	// user
 	authGroup.PUT("users/update-profile", userHandler.UpdateProfile)

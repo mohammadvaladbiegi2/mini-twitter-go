@@ -148,9 +148,7 @@ func (h *Handler) GetUserByUsername(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, apperror.Validation("Validation failed", validationErrors, nil))
 	}
 
-	userID := c.Get("userID").(int64)
-
-	users, Serror := h.searchService.GetUserByUsername(username, userID)
+	users, Serror := h.searchService.GetUserByUsername(username)
 	if Serror != nil {
 		return c.JSON(Serror.StatusCode, Serror)
 	}

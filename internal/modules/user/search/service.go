@@ -7,7 +7,7 @@ import (
 
 type Service interface {
 	SearchUsersByUsername(prefix string, limit int) ([]userdtos.SearchUsersByUsernameRes, *apperror.AppError)
-	GetUserByUsername(userName string, userID int64) (userdtos.GetUserByUsernameRes, *apperror.AppError)
+	GetUserByUsername(userName string) (userdtos.GetUserByUsernameRes, *apperror.AppError)
 }
 
 type SearchService struct {
@@ -22,6 +22,6 @@ func (s *SearchService) SearchUsersByUsername(prefix string, limit int) ([]userd
 	return s.repo.SearchUsersByUsername(prefix, limit)
 }
 
-func (s *SearchService) GetUserByUsername(userName string, userID int64) (userdtos.GetUserByUsernameRes, *apperror.AppError) {
-	return s.repo.GetUserByUsername(userName, userID)
+func (s *SearchService) GetUserByUsername(userName string) (userdtos.GetUserByUsernameRes, *apperror.AppError) {
+	return s.repo.GetUserByUsername(userName)
 }

@@ -6,7 +6,8 @@ for use middleware in echo framework go get github.com/labstack/echo/v4/middlewa
 for use JWT go get github.com/golang-jwt/jwt/v5
 for diagnosis error in pool request to dat base go get github.com/jackc/pgx
 
-
+for upload service miniO    github.com/minio/minio-go/v7
+for upload service miniO 	github.com/minio/minio-go/v7/pkg/credentials
 
 
 

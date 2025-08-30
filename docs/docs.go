@@ -393,6 +393,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/tweets/{tweet_id}/upload-image": {
+            "post": {
+                "description": "Uploads an image and associates it with the given tweet",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Upload"
+                ],
+                "summary": "Upload an image for a tweet",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the tweet",
+                        "name": "tweet_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/uploaddto.UploadTweetImageRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/follow": {
             "post": {
                 "produces": [
@@ -997,6 +1048,17 @@ const docTemplate = `{
                 }
             }
         },
+        "uploaddto.UploadTweetImageRes": {
+            "type": "object",
+            "properties": {
+                "image_url": {
+                    "type": "string"
+                },
+                "upload_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "user.SimpleResMessage": {
             "type": "object",
             "properties": {
@@ -1063,6 +1125,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "like_count": {
                     "type": "integer"
                 },
@@ -1094,6 +1159,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
                 },
                 "like_count": {
                     "type": "integer"
