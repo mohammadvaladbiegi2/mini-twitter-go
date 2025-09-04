@@ -4,6 +4,7 @@ import (
 	"log"
 	internalMiddleware "twitter_clone/internal/middleware"
 	"twitter_clone/internal/modules/auth"
+	"twitter_clone/internal/modules/timeline"
 	"twitter_clone/internal/modules/tweet"
 	tweetaction "twitter_clone/internal/modules/tweet/action"
 	tweetbookmark "twitter_clone/internal/modules/tweet/bookmark"
@@ -18,6 +19,7 @@ import (
 	userprofile "twitter_clone/internal/modules/user/profile"
 	usersearch "twitter_clone/internal/modules/user/search"
 	"twitter_clone/internal/pkg/apperror"
+	"twitter_clone/internal/pkg/redisclient"
 
 	"github.com/labstack/echo/v4/middleware"
 
@@ -71,6 +73,11 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 		log.Fatal(apperror.Server("cant init the minio storage", err))
 	}
 
+	// init redis
+	if err := redisclient.Init(); err != nil {
+		log.Fatalf("failed to connect redis: %v", err)
+	}
+
 	// repos
 	uploadRepo := upload.NewUploadRepository(db)
 	userRepo := uploadavataruser.NewUserRepository(db)
@@ -84,6 +91,11 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	// handlers
 	avatarHandler := avatar.NewHandler(avatarSvc)
 	tweetImageHandler := tweetmedia.NewHandler(tweetImageService)
+
+	//  TimeLine
+	timelineRepo := timeline.NewTimeLineRepo(db)
+	timelineService := timeline.NewTimeLineService(timelineRepo)
+	timelineHandler := timeline.NewTimeLineHandler(timelineService)
 
 	// register route (protected)
 	authGroup := e.Group("")
@@ -117,6 +129,10 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup.POST("tweets/:tweet_id/bookmark", tweetHandler.Bookmark)
 	authGroup.DELETE("tweets/:tweet_id/bookmark", tweetHandler.Unbookmark)
 	authGroup.GET("tweets/bookmarks", tweetHandler.ListBookmarks)
+
+	// timeline
+
+	authGroup.GET("timeline/get_user", timelineHandler.GetTestUser)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

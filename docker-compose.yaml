@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   postgres:
@@ -43,9 +42,21 @@ services:
     networks:
       - app_network
 
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
 volumes:
   postgres_data:
   minio_data:
+  redis_data:
 
 networks:
   app_network:
