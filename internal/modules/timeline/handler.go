@@ -23,6 +23,7 @@ func NewTimeLineHandler(s Service) *Handler {
 // @Param    cursor query string false "opaque cursor for pagination"
 // @Success  200    {object} timelinedto.TimelineResponse
 // @Security Bearer
+// @Failure      400 {object} apperror.AppError
 // @Router   /timeline [get]
 func (h *Handler) MyTimeLine(c echo.Context) error {
 	userID := c.Get("userID").(int64)
