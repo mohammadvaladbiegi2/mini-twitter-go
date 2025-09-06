@@ -171,7 +171,7 @@ func (r *TimeLineRepo) getFollowingIDs(ctx context.Context, userID int64) ([]int
 	// Cache results
 	if len(followingIDs) > 0 {
 		if data, err := json.Marshal(followingIDs); err == nil {
-			redisclient.Rdb.Set(ctx, cacheKey, data, 30*time.Minute)
+			redisclient.Rdb.Set(ctx, cacheKey, data, 5*time.Minute)
 		}
 	}
 

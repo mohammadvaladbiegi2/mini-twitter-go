@@ -1,6 +1,7 @@
 package userdtos
 
 type GetUserByUsernameRes struct {
+	ID             int64    `json:"id"`
 	Username       string   `json:"username"`
 	Bio            *string  `json:"bio"`
 	AvatarURL      *string  `json:"avatar_url"`

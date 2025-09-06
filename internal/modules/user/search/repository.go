@@ -67,7 +67,6 @@ func (r *SearchRepository) GetUserByUsername(userName string) (userdtos.GetUserB
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var userID int64
 	queryUser := `
 		SELECT id, username, bio, avatar_url, follower_count, following_count
 		FROM users
@@ -75,7 +74,7 @@ func (r *SearchRepository) GetUserByUsername(userName string) (userdtos.GetUserB
 	`
 	var res userdtos.GetUserByUsernameRes
 	err := r.db.QueryRow(ctx, queryUser, userName).Scan(
-		&userID,
+		&res.ID,
 		&res.Username,
 		&res.Bio,
 		&res.AvatarURL,
@@ -107,7 +106,7 @@ func (r *SearchRepository) GetUserByUsername(userName string) (userdtos.GetUserB
     GROUP BY t.id
     ORDER BY t.created_at DESC;
 	`
-	rows, err := r.db.Query(ctx, queryTweets, userID)
+	rows, err := r.db.Query(ctx, queryTweets, res.ID)
 	if err != nil {
 		return res, apperror.DB("failed to get user tweets", err)
 	}
