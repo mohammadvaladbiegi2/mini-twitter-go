@@ -1,6 +1,7 @@
 package timeline
 
 import (
+	timelinedto "twitter_clone/internal/modules/timeline/dto"
 	"twitter_clone/internal/pkg/apperror"
 )
 
@@ -9,28 +10,17 @@ type TimeLineService struct {
 }
 
 type Service interface {
-	AddDataToRedis(userID int64) (R, *apperror.AppError)
+	MyTimeline(userID int64, limit int, cursor *string) (*timelinedto.TimelineResponse, *apperror.AppError)
 }
 
 func NewTimeLineService(repo Repository) *TimeLineService {
 	return &TimeLineService{repo}
 }
 
-type R struct {
-	ID           int64   `json:"id"`
-	Username     string  `json:"username"`
-	Email        string  `json:"email"`
-	PasswordHash string  `json:"-"`
-	Bio          *string `json:"bio"`
-	AvatarURL    *string `json:"avatar_url"`
-}
-
-func (t TimeLineService) AddDataToRedis(userID int64) (R, *apperror.AppError) {
-
-	user, err := t.repo.AddDataToRedis(userID)
-	if err != nil {
-		return R{}, err
+func (t TimeLineService) MyTimeline(userID int64, limit int, cursor *string) (*timelinedto.TimelineResponse, *apperror.AppError) {
+	if limit <= 0 || limit > 100 {
+		limit = 20
 	}
 
-	return user, nil
+	return t.repo.MyTimeline(userID, limit, cursor)
 }

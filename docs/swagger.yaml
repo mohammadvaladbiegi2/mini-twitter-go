@@ -40,6 +40,49 @@ definitions:
       token:
         type: string
     type: object
+  timelinedto.TimelineResponse:
+    properties:
+      has_next_page:
+        type: boolean
+      limit:
+        type: integer
+      next_cursor:
+        type: string
+      tweets:
+        items:
+          $ref: '#/definitions/timelinedto.Tweet'
+        type: array
+    type: object
+  timelinedto.Tweet:
+    properties:
+      author:
+        properties:
+          avatar_url:
+            type: string
+          username:
+            type: string
+        type: object
+      bookmark_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      dislike_count:
+        type: integer
+      id:
+        type: integer
+      image_url:
+        type: string
+      like_count:
+        type: integer
+      reply_count:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
   tweet.SimpleResMessage:
     properties:
       message:
@@ -389,6 +432,29 @@ paths:
       summary: Sign up a new user
       tags:
       - Auth
+  /timeline:
+    get:
+      parameters:
+      - description: max 100 (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: opaque cursor for pagination
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/timelinedto.TimelineResponse'
+      security:
+      - Bearer: []
+      summary: Get user timeline (keyset pagination)
+      tags:
+      - Timeline
   /tweets/{tweet_id}/bookmark:
     delete:
       produces:

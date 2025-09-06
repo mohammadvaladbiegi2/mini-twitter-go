@@ -132,7 +132,7 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 
 	// timeline
 
-	authGroup.GET("timeline/get_user", timelineHandler.GetTestUser)
+	authGroup.GET("timeline/my_time_line", timelineHandler.MyTimeLine)
 
 	// Swagger endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
