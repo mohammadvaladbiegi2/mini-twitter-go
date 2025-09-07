@@ -8,6 +8,5 @@ Chirper is a minimal yet production-oriented Twitter clone backend written in Go
 - Follow / unfollow relationships
 - Timeline generation (fan-out/fan-in options)
 - Redis caching for hot timelines
-- Docker Compose + GitHub Actions for CI
-- Tests: unit + integration
+- Docker Compose 
 
