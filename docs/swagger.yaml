@@ -222,6 +222,8 @@ definitions:
         type: integer
       following_count:
         type: integer
+      id:
+        type: integer
       tweets:
         items:
           $ref: '#/definitions/userdtos.Tweets'
@@ -369,6 +371,74 @@ definitions:
       total:
         type: integer
     type: object
+  walletdto.BalanceRes:
+    properties:
+      balance:
+        example: 1000
+        type: integer
+    type: object
+  walletdto.LedgerEntry:
+    properties:
+      amount:
+        example: -50
+        type: integer
+      created_at:
+        example: "2025-10-01T12:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      related_user_id:
+        example: 123
+        type: integer
+      type:
+        example: gift_in
+        type: string
+    type: object
+  walletdto.LedgerRes:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/walletdto.LedgerEntry'
+        type: array
+      total:
+        example: 2
+        type: integer
+    type: object
+  walletdto.RewardReq:
+    properties:
+      amount:
+        example: 100
+        type: integer
+      currency_code:
+        example: COIN
+        type: string
+    type: object
+  walletdto.RewardRes:
+    properties:
+      message:
+        example: Reward added successfully
+        type: string
+    type: object
+  walletdto.TransferReq:
+    properties:
+      amount:
+        example: 100000
+        type: integer
+      currency_code:
+        description: الزامی
+        example: COIN
+        type: string
+      to_user_id:
+        example: 123
+        type: integer
+    type: object
+  walletdto.TransferRes:
+    properties:
+      message:
+        example: Transfer successful
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -450,6 +520,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/timelinedto.TimelineResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
       security:
       - Bearer: []
       summary: Get user timeline (keyset pagination)
@@ -920,4 +994,124 @@ paths:
       summary: Update user profile
       tags:
       - User Profile
+  /wallet/balance:
+    get:
+      description: Returns the current wallet balance of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wallet balance in smallest unit
+          schema:
+            $ref: '#/definitions/walletdto.BalanceRes'
+        "401":
+          description: Unauthorized, missing or invalid token
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Get wallet balance
+      tags:
+      - Wallet
+  /wallet/ledger:
+    get:
+      description: Returns paginated transaction history (ledger entries) of the authenticated
+        user
+      parameters:
+      - description: Number of records to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of ledger entries
+          schema:
+            $ref: '#/definitions/walletdto.LedgerRes'
+        "401":
+          description: Unauthorized, missing or invalid token
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Get wallet transaction history
+      tags:
+      - Wallet
+  /wallet/reward:
+    post:
+      consumes:
+      - application/json
+      description: Adds coins to the authenticated user's wallet (e.g. challenge reward)
+      parameters:
+      - description: Reward payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/walletdto.RewardReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reward added successfully
+          schema:
+            $ref: '#/definitions/walletdto.RewardRes'
+        "400":
+          description: Validation failed (e.g. negative amount)
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "401":
+          description: Unauthorized, missing or invalid token
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Reward user with coins
+      tags:
+      - Wallet
+  /wallet/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfers coins from authenticated user to target user
+      parameters:
+      - description: Transfer payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/walletdto.TransferReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transfer successful
+          schema:
+            $ref: '#/definitions/walletdto.TransferRes'
+        "400":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      summary: Transfer coins to another user
+      tags:
+      - Wallet
 swagger: "2.0"

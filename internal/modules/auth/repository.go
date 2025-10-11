@@ -49,15 +49,37 @@ func (r AuthRepository) SignUp(userData authdtos.SignUpReq) (authdtos.SignUpResD
 		}, nil)
 	}
 
-	insertQuery := `
+	// شروع تراکنش
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return authdtos.SignUpResDB{}, apperror.DB("failed to start transaction", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// insert user
+	insertUserQuery := `
 		INSERT INTO users (username, email, password_hash)
 		VALUES ($1, $2, $3)
 		RETURNING id, username
 	`
 	var userID int64
 	var username string
-	if err := r.db.QueryRow(ctx, insertQuery, userData.Username, userData.Email, userData.Password).Scan(&userID, &username); err != nil {
+	if err := tx.QueryRow(ctx, insertUserQuery, userData.Username, userData.Email, userData.Password).Scan(&userID, &username); err != nil {
 		return authdtos.SignUpResDB{}, apperror.DB("failed to insert user", err)
+	}
+
+	// insert wallet
+	insertWalletQuery := `
+		INSERT INTO wallets (user_id, balance)
+		VALUES ($1, 0)
+	`
+	if _, err := tx.Exec(ctx, insertWalletQuery, userID); err != nil {
+		return authdtos.SignUpResDB{}, apperror.DB("failed to create wallet", err)
+	}
+
+	// commit تراکنش
+	if err := tx.Commit(ctx); err != nil {
+		return authdtos.SignUpResDB{}, apperror.DB("failed to commit transaction", err)
 	}
 
 	return authdtos.SignUpResDB{

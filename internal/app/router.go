@@ -18,6 +18,7 @@ import (
 	userconnection "twitter_clone/internal/modules/user/connection"
 	userprofile "twitter_clone/internal/modules/user/profile"
 	usersearch "twitter_clone/internal/modules/user/search"
+	"twitter_clone/internal/modules/wallet"
 	"twitter_clone/internal/pkg/apperror"
 	"twitter_clone/internal/pkg/redisclient"
 
@@ -97,6 +98,11 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	timelineService := timeline.NewTimeLineService(timelineRepo)
 	timelineHandler := timeline.NewTimeLineHandler(timelineService)
 
+	// wallet
+	walletRepo := wallet.NewWalletRepository(db)
+	walletService := wallet.NewWalletService(walletRepo)
+	walletHandler := wallet.NewWalletHandler(walletService)
+
 	// register route (protected)
 	authGroup := e.Group("")
 	authGroup.Use(internalMiddleware.JWTauthentication)
@@ -129,6 +135,12 @@ func RegisterRoutes(e *echo.Echo, db *pgxpool.Pool) {
 	authGroup.POST("tweets/:tweet_id/bookmark", tweetHandler.Bookmark)
 	authGroup.DELETE("tweets/:tweet_id/bookmark", tweetHandler.Unbookmark)
 	authGroup.GET("tweets/bookmarks", tweetHandler.ListBookmarks)
+
+	// wallet
+	authGroup.GET("wallet/balance", walletHandler.GetBalance)
+	authGroup.GET("wallet/ledger", walletHandler.GetLedger)
+	authGroup.POST("wallet/reward", walletHandler.Reward)
+	authGroup.POST("wallet/transfer", walletHandler.Transfer)
 
 	// timeline
 

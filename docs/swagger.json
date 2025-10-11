@@ -130,6 +130,12 @@
                         "schema": {
                             "$ref": "#/definitions/timelinedto.TimelineResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
                     }
                 }
             }
@@ -834,6 +840,188 @@
                     }
                 }
             }
+        },
+        "/wallet/balance": {
+            "get": {
+                "description": "Returns the current wallet balance of the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Get wallet balance",
+                "responses": {
+                    "200": {
+                        "description": "Wallet balance in smallest unit",
+                        "schema": {
+                            "$ref": "#/definitions/walletdto.BalanceRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized, missing or invalid token",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/ledger": {
+            "get": {
+                "description": "Returns paginated transaction history (ledger entries) of the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Get wallet transaction history",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of records to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of ledger entries",
+                        "schema": {
+                            "$ref": "#/definitions/walletdto.LedgerRes"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized, missing or invalid token",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/reward": {
+            "post": {
+                "description": "Adds coins to the authenticated user's wallet (e.g. challenge reward)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Reward user with coins",
+                "parameters": [
+                    {
+                        "description": "Reward payload",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/walletdto.RewardReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reward added successfully",
+                        "schema": {
+                            "$ref": "#/definitions/walletdto.RewardRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation failed (e.g. negative amount)",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized, missing or invalid token",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/transfer": {
+            "post": {
+                "description": "Transfers coins from authenticated user to target user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Transfer coins to another user",
+                "parameters": [
+                    {
+                        "description": "Transfer payload",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/walletdto.TransferReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transfer successful",
+                        "schema": {
+                            "$ref": "#/definitions/walletdto.TransferRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation failed",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.AppError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1181,6 +1369,9 @@
                 "following_count": {
                     "type": "integer"
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "tweets": {
                     "type": "array",
                     "items": {
@@ -1404,6 +1595,104 @@
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "walletdto.BalanceRes": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "integer",
+                    "example": 1000
+                }
+            }
+        },
+        "walletdto.LedgerEntry": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": -50
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2025-10-01T12:00:00Z"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "related_user_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "type": {
+                    "type": "string",
+                    "example": "gift_in"
+                }
+            }
+        },
+        "walletdto.LedgerRes": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/walletdto.LedgerEntry"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "walletdto.RewardReq": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "currency_code": {
+                    "type": "string",
+                    "example": "COIN"
+                }
+            }
+        },
+        "walletdto.RewardRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Reward added successfully"
+                }
+            }
+        },
+        "walletdto.TransferReq": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "currency_code": {
+                    "description": "الزامی",
+                    "type": "string",
+                    "example": "COIN"
+                },
+                "to_user_id": {
+                    "type": "integer",
+                    "example": 123
+                }
+            }
+        },
+        "walletdto.TransferRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Transfer successful"
                 }
             }
         }
